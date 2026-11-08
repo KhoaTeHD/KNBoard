@@ -15,6 +15,8 @@ import {
   Shuffle,
   ZoomIn,
   ZoomOut,
+  FilePlus2,
+  FolderOpen,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { MathText } from '../common/MathText';
@@ -88,6 +90,9 @@ export const ExamEditorPane: React.FC = () => {
   const shuffleExamQuestionsAndOptions = useAppStore(
     (s) => s.shuffleExamQuestionsAndOptions
   );
+  const resetToBlankExam = useAppStore((s) => s.resetToBlankExam);
+  const loadSampleDemoExam = useAppStore((s) => s.loadSampleDemoExam);
+  const deleteQuestion = useAppStore((s) => s.deleteQuestion);
 
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [selectedFigureQuestionId, setSelectedFigureQuestionId] = useState<string | null>(null);
@@ -358,7 +363,7 @@ export const ExamEditorPane: React.FC = () => {
                   e.stopPropagation();
                   toggleQuestionSolutionSpace(q.id);
                 }}
-                className={`px-2 py-0.5 rounded text-[11px] font-sans font-medium flex items-center gap-1 ${
+                className={`px-2 py-0.5 rounded text-[11px] font-sans font-medium flex items-center gap-1 whitespace-nowrap ${
                   q.solutionSpaceHeight > 0
                     ? 'bg-emerald-600 text-white'
                     : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
@@ -367,9 +372,21 @@ export const ExamEditorPane: React.FC = () => {
               >
                 <PenTool className="w-3 h-3" />
                 <span>
-                  {q.solutionSpaceHeight > 0 ? 'Ẩn bảng giải' : '+ Bảng giải XP-Pen'}
+                  {q.solutionSpaceHeight > 0 ? 'Ẩn bảng giải' : '+ Bảng giải'}
                 </span>
               </button>
+              {questions.length > 1 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteQuestion(q.id);
+                  }}
+                  className="p-1 rounded text-red-500 hover:bg-red-50"
+                  title="Xoá câu hỏi này"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -695,61 +712,60 @@ export const ExamEditorPane: React.FC = () => {
   const firstEssayId = questions.find((q) => q.part === 'essay')?.id;
 
   return (
-    <div className="relative h-full w-full bg-slate-200/85 overflow-y-auto flex flex-col items-center py-6 px-4 gap-8">
-      {/* Left Floating Action Stack */}
-      <div className="fixed left-4 top-16 z-40 flex flex-col gap-1.5 w-36 print:hidden">
-        <button
-          onClick={() =>
-            setWorkspaceMode(workspaceMode === 'split' ? 'editor-only' : 'split')
-          }
-          className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md flex items-center gap-1.5 transition"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>
-            {workspaceMode === 'split' ? 'Mở rộng trang Đề' : 'Chia đôi Bảng vẽ'}
-          </span>
-        </button>
+    <div className="relative h-full w-full bg-slate-200/85 flex flex-col overflow-hidden">
+      {/* Clean Responsive Document Sub-Toolbar (Never overlaps the A4 paper!) */}
+      <div className="min-h-[40px] px-3 py-1 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs z-30 print:hidden">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={resetToBlankExam}
+            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
+            title="Tạo đề thi trống mới tinh"
+          >
+            <FilePlus2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <span>Đề mới</span>
+          </button>
 
-        <button
-          onClick={() =>
-            setWorkspaceMode(workspaceMode === 'teaching' ? 'split' : 'teaching')
-          }
-          className={`w-full py-2 px-3 rounded-xl font-semibold text-xs shadow-sm border flex items-center gap-1.5 transition ${
-            workspaceMode === 'teaching'
-              ? 'bg-emerald-600 text-white border-emerald-700'
-              : 'bg-white hover:bg-emerald-50 text-emerald-700 border-slate-200'
-          }`}
-        >
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>
-            {workspaceMode === 'teaching' ? 'Đang chữa XP-Pen' : 'Chữa đề XP-Pen'}
-          </span>
-        </button>
+          <button
+            onClick={loadSampleDemoExam}
+            className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition"
+            title="Nạp bộ câu hỏi mẫu có sẵn hình chóp 3D và đồ thị để thử nghiệm"
+          >
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span>Nạp đề mẫu</span>
+          </button>
 
-        <button
-          onClick={shuffleExamQuestionsAndOptions}
-          className="w-full py-2 px-3 rounded-xl bg-white hover:bg-amber-50 text-amber-800 border border-slate-200 font-semibold text-xs shadow-sm flex items-center gap-1.5 transition"
-          title="Trộn ngẫu nhiên câu hỏi và đảo đáp án A, B, C, D"
-        >
-          <Shuffle className="w-3.5 h-3.5 text-amber-600" />
-          <span>Trộn mã đề</span>
-        </button>
+          <button
+            onClick={shuffleExamQuestionsAndOptions}
+            className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
+            title="Trộn ngẫu nhiên câu hỏi và đảo đáp án A, B, C, D"
+          >
+            <Shuffle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>Trộn mã đề</span>
+          </button>
 
-        {/* Export Dropdown */}
-        <div className="relative">
+          <button
+            onClick={() => setWorkspaceMode('teaching')}
+            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
+            title="Chuyển sang chế độ Mở File PDF / Thư Mục Đề để chữa bằng bút XP-Pen"
+          >
+            <FolderOpen className="w-3.5 h-3.5 shrink-0" />
+            <span>Mở PDF / Thư mục chữa đề</span>
+          </button>
+        </div>
+
+        {/* Right: Export Dropdown */}
+        <div className="relative shrink-0">
           <button
             onClick={() => setShowDownloadMenu((v) => !v)}
-            className="w-full py-2 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs shadow-sm border border-slate-200 flex items-center justify-between transition"
+            className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5 whitespace-nowrap transition"
           >
-            <span className="flex items-center gap-1.5">
-              <FileDown className="w-3.5 h-3.5 text-blue-600" />
-              <span>Tải về</span>
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <FileDown className="w-3.5 h-3.5 shrink-0" />
+            <span>Tải về (Word / PDF)</span>
+            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
           </button>
 
           {showDownloadMenu && (
-            <div className="mt-1 w-52 rounded-xl bg-white shadow-xl border border-slate-200 p-1.5 space-y-1 z-50">
+            <div className="absolute right-0 mt-1 w-56 rounded-xl bg-white shadow-xl border border-slate-200 p-1.5 space-y-1 z-50">
               <button
                 onClick={handleExportWord}
                 className="w-full px-2.5 py-2 rounded-lg hover:bg-blue-50 text-left text-xs flex items-center gap-2 text-slate-800"
@@ -790,6 +806,9 @@ export const ExamEditorPane: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Scrollable Multi-Page A4 Container */}
+      <div className="flex-1 overflow-y-auto flex flex-col items-center py-6 px-4 gap-8">
 
       {/* Render Multi-Page A4 Sheets (Trang 1, Trang 2, ...) */}
       {paginatedPages.map((pageQuestions, pageIdx) => (
@@ -896,6 +915,7 @@ export const ExamEditorPane: React.FC = () => {
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 };

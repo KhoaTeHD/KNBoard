@@ -97,6 +97,13 @@ console.log('=== BẮT ĐẦU KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN (KNBOARD TE
 // 5. Test Live-Link Synchronization & Exam Shuffle (Trộn mã đề)
 {
   const store = useAppStore.getState();
+  // Verify initial state is a clean blank exam (only 1 blank starter question, no clutter)
+  assert.equal(store.questions.length, 1, 'Initial exam should start clean with 1 blank question');
+
+  // Load sample demo exam to test multi-question features
+  store.loadSampleDemoExam();
+  assert.equal(useAppStore.getState().questions.length, 3);
+
   store.linkBoardFigureToQuestion('q3', '2d-triangle');
   const q3 = useAppStore.getState().questions.find((q) => q.id === 'q3')!;
   assert.equal(q3.linkedFigure?.boardType, '2d-triangle');

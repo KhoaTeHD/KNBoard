@@ -56,7 +56,6 @@ export const TopHeaderBar: React.FC = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<ReleaseUpdateInfo | null>(null);
 
-  // Silent background check on startup — automatically pops up modal AND auto-installs if running in Tauri!
   useEffect(() => {
     let mounted = true;
     checkAppUpdate()
@@ -65,85 +64,61 @@ export const TopHeaderBar: React.FC = () => {
         setUpdateInfo(info);
         if (info.hasUpdate) {
           setIsUpdateModalOpen(true);
-          // If running inside Tauri Desktop, automatically download, install, and restart into the new version!
           if (info.isTauriNativeUpdate) {
             try {
-              const { performTauriNativeUpdate } = await import('../../core/autoUpdater');
+              const { performTauriNativeUpdate } = await import(
+                '../../core/autoUpdater'
+              );
               await performTauriNativeUpdate();
             } catch {
-              // If auto-install requires user confirmation, modal is already open
+              // Modal remains open for manual click if needed
             }
           }
         }
       })
-      .catch(() => {
-        // Ignore network offline errors during silent startup check
-      });
+      .catch(() => {});
     return () => {
       mounted = false;
     };
   }, []);
 
   return (
-    <header className="h-12 px-3 bg-white border-b border-slate-200 flex items-center justify-between gap-2 select-none z-40 print:hidden">
+    <header className="min-h-[46px] px-2.5 py-1 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 select-none z-40 print:hidden">
       {/* Left: Brand + Workspace Mode Switcher */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-sm flex items-center justify-center shadow-sm">
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-sm flex items-center justify-center shadow-sm shrink-0">
             ∑
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-900 leading-none">
-                KNBoard
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-900">KNBoard</span>
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              title="Bấm để kiểm tra cập nhật phiên bản mới từ GitHub Releases"
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+                updateInfo?.hasUpdate
+                  ? 'bg-amber-500 text-white animate-pulse shadow-sm'
+                  : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200'
+              }`}
+            >
+              <DownloadCloud className="w-2.5 h-2.5 shrink-0" />
+              <span>
+                {updateInfo?.hasUpdate
+                  ? `Bản mới v${updateInfo.latestVersion}`
+                  : `v${CURRENT_APP_VERSION}`}
               </span>
-              <button
-                onClick={() => setIsUpdateModalOpen(true)}
-                title="Bấm để kiểm tra cập nhật phiên bản mới từ GitHub Releases"
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 transition ${
-                  updateInfo?.hasUpdate
-                    ? 'bg-amber-500 text-white animate-pulse shadow-sm'
-                    : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200'
-                }`}
-              >
-                <DownloadCloud className="w-2.5 h-2.5" />
-                <span>
-                  {updateInfo?.hasUpdate
-                    ? `Có bản mới v${updateInfo.latestVersion}`
-                    : `v${CURRENT_APP_VERSION}`}
-                </span>
-              </button>
-            </div>
-            <div className="text-[10px] text-slate-500">
-              Math Studio & XP-Pen
-            </div>
+            </button>
           </div>
         </div>
 
-        {/* 4 Workspace Modes */}
-        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-xs">
+        {/* 4 Workspace Modes — Strictly whitespace-nowrap so buttons never wrap vertically */}
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-xs shrink-0">
           {(
             [
-              {
-                id: 'split',
-                label: 'Chia đôi (Đề + Bảng vẽ)',
-                icon: Columns,
-              },
-              {
-                id: 'editor-only',
-                label: 'Soạn Đề Thi',
-                icon: FileEdit,
-              },
-              {
-                id: 'board-only',
-                label: 'Bảng Vẽ Hình',
-                icon: Presentation,
-              },
-              {
-                id: 'teaching',
-                label: 'Giảng Dạy XP-Pen',
-                icon: BookOpen,
-              },
+              { id: 'split', label: 'Chia đôi', icon: Columns },
+              { id: 'editor-only', label: 'Soạn Đề', icon: FileEdit },
+              { id: 'board-only', label: 'Bảng Vẽ', icon: Presentation },
+              { id: 'teaching', label: 'Giảng Dạy', icon: BookOpen },
             ] as { id: WorkspaceMode; label: string; icon: React.ElementType }[]
           ).map((m) => {
             const Icon = m.icon;
@@ -152,13 +127,13 @@ export const TopHeaderBar: React.FC = () => {
               <button
                 key={m.id}
                 onClick={() => setWorkspaceMode(m.id)}
-                className={`px-2.5 py-1 rounded-md font-medium flex items-center gap-1.5 transition ${
+                className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                   active
                     ? 'bg-white text-blue-600 shadow-sm font-semibold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span>{m.label}</span>
               </button>
             );
@@ -167,13 +142,13 @@ export const TopHeaderBar: React.FC = () => {
       </div>
 
       {/* Center: XP-Pen / Stylus Live Teaching Toolset */}
-      <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200/90">
+      <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/90 overflow-x-auto max-w-full shrink-0">
         {(
           [
-            { id: 'select', label: 'Chọn / Kéo', icon: MousePointer },
-            { id: 'pen', label: 'Bút XP-Pen', icon: PenTool },
+            { id: 'select', label: 'Chọn/Kéo', icon: MousePointer },
+            { id: 'pen', label: 'Bút viết', icon: PenTool },
             { id: 'highlighter', label: 'Dạ quang', icon: Highlighter },
-            { id: 'laser', label: 'Bút Laser', icon: Sparkles },
+            { id: 'laser', label: 'Laser', icon: Sparkles },
             { id: 'eraser', label: 'Tẩy', icon: Eraser },
           ] as { id: PenToolType; label: string; icon: React.ElementType }[]
         ).map((t) => {
@@ -183,22 +158,22 @@ export const TopHeaderBar: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setPenTool(t.id)}
-              className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition ${
+              className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                 active
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-700 hover:bg-slate-200/70'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3.5 h-3.5 shrink-0" />
               <span>{t.label}</span>
             </button>
           );
         })}
 
-        <span className="text-slate-300 mx-0.5">|</span>
+        <span className="text-slate-300 shrink-0">|</span>
 
         {/* Pen Color Swatches */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {PEN_COLORS.map((c) => (
             <button
               key={c.hex}
@@ -209,7 +184,7 @@ export const TopHeaderBar: React.FC = () => {
                 }
               }}
               title={c.label}
-              className={`w-4 h-4 rounded-full border transition transform ${
+              className={`w-4 h-4 rounded-full border shrink-0 transition transform ${
                 penColor === c.hex
                   ? 'scale-125 ring-2 ring-blue-500 ring-offset-1'
                   : 'border-slate-300 hover:scale-110'
@@ -219,13 +194,13 @@ export const TopHeaderBar: React.FC = () => {
           ))}
         </div>
 
-        <span className="text-slate-300 mx-0.5">|</span>
+        <span className="text-slate-300 shrink-0">|</span>
 
-        {/* Dynamic Pen Size OR Eraser Size Slider & Presets */}
+        {/* Compact Pen Size OR Eraser Size Controls */}
         {penTool === 'eraser' ? (
-          <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg bg-red-50/70 border border-red-200/80 text-[11px]">
-            <span className="font-semibold text-red-700 whitespace-nowrap">
-              Cỡ tẩy: {eraserSize}px
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-red-50/70 border border-red-200/80 text-[11px] whitespace-nowrap shrink-0">
+            <span className="font-semibold text-red-700">
+              Cỡ tẩy: {eraserSize}
             </span>
             <input
               type="range"
@@ -234,31 +209,14 @@ export const TopHeaderBar: React.FC = () => {
               step="2"
               value={eraserSize}
               onChange={(e) => setEraserSize(parseInt(e.target.value, 10))}
-              className="w-16 accent-red-600 cursor-pointer"
+              className="w-14 accent-red-600 cursor-pointer"
               title="Kéo để chỉnh độ to/nhỏ của cục tẩy"
             />
-            {[
-              { label: 'Nhỏ', val: 10 },
-              { label: 'Vừa', val: 20 },
-              { label: 'To', val: 40 },
-            ].map((preset) => (
-              <button
-                key={preset.label}
-                onClick={() => setEraserSize(preset.val)}
-                className={`px-1.5 py-0.2 rounded text-[10px] font-medium transition ${
-                  Math.abs(eraserSize - preset.val) <= 3
-                    ? 'bg-red-600 text-white'
-                    : 'bg-white text-red-700 hover:bg-red-100 border border-red-200'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg bg-blue-50/60 border border-blue-200/80 text-[11px]">
-            <span className="font-semibold text-blue-800 whitespace-nowrap flex items-center gap-1">
-              <span>Nét bút: {penSize.toFixed(1)}</span>
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-blue-50/60 border border-blue-200/80 text-[11px] whitespace-nowrap shrink-0">
+            <span className="font-semibold text-blue-800">
+              Cỡ bút: {penSize.toFixed(1)}
             </span>
             <input
               type="range"
@@ -270,29 +228,9 @@ export const TopHeaderBar: React.FC = () => {
                 setPenSize(parseFloat(e.target.value));
                 if (penTool === 'select') setPenTool('pen');
               }}
-              className="w-16 accent-blue-600 cursor-pointer"
+              className="w-14 accent-blue-600 cursor-pointer"
               title="Kéo để chỉnh độ dày nét bút XP-Pen"
             />
-            {[
-              { label: 'Mảnh', val: 1.6 },
-              { label: 'Vừa', val: 2.8 },
-              { label: 'Đậm', val: 5.0 },
-            ].map((preset) => (
-              <button
-                key={preset.label}
-                onClick={() => {
-                  setPenSize(preset.val);
-                  if (penTool === 'select') setPenTool('pen');
-                }}
-                className={`px-1.5 py-0.2 rounded text-[10px] font-medium transition ${
-                  Math.abs(penSize - preset.val) < 0.5
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-blue-700 hover:bg-blue-100 border border-blue-200'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
           </div>
         )}
 
@@ -300,39 +238,38 @@ export const TopHeaderBar: React.FC = () => {
         <button
           onClick={() => setShapeSnapEnabled(!shapeSnapEnabled)}
           title="Giữ bút XP-Pen đứng yên 0.45 giây ở cuối nét để tự động nắn thành đường thẳng tắp"
-          className={`ml-1 px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border transition ${
+          className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border whitespace-nowrap shrink-0 transition ${
             shapeSnapEnabled
               ? 'bg-amber-50 border-amber-300 text-amber-800'
               : 'bg-white border-slate-200 text-slate-500'
           }`}
         >
-          <Wand2 className="w-3 h-3" />
-          <span>Tự nắn thẳng</span>
+          <Wand2 className="w-3 h-3 shrink-0" />
+          <span>Nắn thẳng</span>
         </button>
 
         {/* Clear All Ink Button */}
         <button
           onClick={clearAllExamInk}
           title="Xoá toàn bộ nét bút XP-Pen trên đề thi và bảng vẽ"
-          className="px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 transition"
+          className="px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 whitespace-nowrap shrink-0 transition"
         >
-          <Trash2 className="w-3 h-3" />
-          <span>Xoá hết mực</span>
+          <Trash2 className="w-3 h-3 shrink-0" />
+          <span>Xoá mực</span>
         </button>
       </div>
 
       {/* Right: Math Formula Button ("∫ Công thức") + Eye-Care Projector Theme */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         <button
           onClick={() => setMathModalOpen(true)}
-          className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold text-xs flex items-center gap-1.5 transition"
+          className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
         >
-          <Sigma className="w-4 h-4" />
+          <Sigma className="w-3.5 h-3.5 shrink-0" />
           <span>∫ Công thức</span>
         </button>
 
-        {/* Board / Projector Theme Switcher (White | Warm Paper | Dark Chalkboard) */}
-        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs shrink-0">
           {(
             [
               { id: 'white', label: 'Trắng', icon: Sun },
@@ -345,15 +282,15 @@ export const TopHeaderBar: React.FC = () => {
               <button
                 key={th.id}
                 onClick={() => setBoardTheme(th.id)}
-                className={`px-2 py-1 rounded flex items-center gap-1 transition ${
+                className={`px-2 py-1 rounded flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                   boardTheme === th.id
                     ? 'bg-white text-slate-900 shadow-sm font-medium'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Đổi màu nền chống lóa khi chiếu Tivi / Máy chiếu"
+                title={`Chế độ màu nền: ${th.label}`}
               >
-                <Icon className="w-3 h-3" />
-                <span className="hidden xl:inline">{th.label}</span>
+                <Icon className="w-3 h-3 shrink-0" />
+                <span className="hidden 2xl:inline">{th.label}</span>
               </button>
             );
           })}

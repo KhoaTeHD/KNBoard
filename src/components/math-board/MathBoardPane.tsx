@@ -150,21 +150,21 @@ export const MathBoardPane: React.FC = () => {
 
   return (
     <div className={`relative h-full w-full flex flex-col select-none overflow-hidden ${bgThemeClass}`}>
-      {/* Board Top Sub-Toolbar (Matches Mathvera Video + Enhanced Controls) */}
-      <div className="h-10 px-3 border-b border-slate-200/80 bg-white/95 text-slate-800 flex items-center justify-between gap-2 z-30 text-xs">
+      {/* Board Top Sub-Toolbar (Responsive, never wraps text into vertical columns) */}
+      <div className="min-h-[40px] px-2.5 py-1 border-b border-slate-200/80 bg-white/95 text-slate-800 flex flex-wrap items-center justify-between gap-1.5 z-30 text-xs">
         {/* Left: Geometry Mode Tabs */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {(
             [
-              { id: '3d-pyramid', label: 'Không gian 3D (Hình chóp)' },
-              { id: 'function-graph', label: 'Đồ thị hàm số f(x)' },
-              { id: '2d-triangle', label: 'Hình phẳng 2D (Đường tròn/Trực tâm)' },
+              { id: '3d-pyramid', label: 'Không gian 3D' },
+              { id: 'function-graph', label: 'Đồ thị f(x)' },
+              { id: '2d-triangle', label: 'Hình phẳng 2D' },
             ] as { id: BoardTabMode; label: string }[]
           ).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveBoardTab(tab.id)}
-              className={`px-2.5 py-1 rounded-md font-medium transition ${
+              className={`px-2.5 py-1 rounded-md font-medium whitespace-nowrap shrink-0 transition ${
                 activeBoardTab === tab.id
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'hover:bg-slate-100 text-slate-700'
@@ -176,7 +176,7 @@ export const MathBoardPane: React.FC = () => {
         </div>
 
         {/* Right: Quick Tools (Tô màu, Cỡ tên điểm, Xoá nét bút) */}
-        <div className="flex items-center gap-1.5 relative">
+        <div className="flex flex-wrap items-center gap-1.5 relative">
           {activeBoardTab === '3d-pyramid' && (
             <>
               <select
@@ -186,20 +186,20 @@ export const MathBoardPane: React.FC = () => {
                     shape3DType: e.target.value as 'pyramid-quad' | 'prism-tri' | 'cone',
                   })
                 }
-                className="px-2 py-1 rounded border border-slate-200 bg-slate-50 font-semibold text-slate-700 focus:outline-none"
+                className="px-2 py-1 rounded border border-slate-200 bg-slate-50 font-semibold text-slate-700 focus:outline-none whitespace-nowrap shrink-0"
                 title="Chọn khối hình học không gian 3D"
               >
-                <option value="pyramid-quad">Khối chóp tứ giác S.ABCD</option>
-                <option value="prism-tri">Khối lăng trụ ABC.A'B'C'</option>
-                <option value="cone">Khối nón tròn xoay S.OAB</option>
+                <option value="pyramid-quad">Khối chóp S.ABCD</option>
+                <option value="prism-tri">Lăng trụ ABC.A'B'C'</option>
+                <option value="cone">Khối nón S.OAB</option>
               </select>
 
               <button
                 onClick={() => setShowColorPalette((v) => !v)}
-                className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1 border border-slate-200"
+                className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1 border border-slate-200 whitespace-nowrap shrink-0"
                 title="Tô màu mặt đáy & thiết diện"
               >
-                <Palette className="w-3.5 h-3.5 text-amber-500" />
+                <Palette className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                 <span>Tô màu</span>
               </button>
 
@@ -207,35 +207,35 @@ export const MathBoardPane: React.FC = () => {
                 onClick={() =>
                   updatePyramid3D({ showCrossSection: !pyramid3D.showCrossSection })
                 }
-                className={`px-2 py-1 rounded flex items-center gap-1 border ${
+                className={`px-2 py-1 rounded flex items-center gap-1 border whitespace-nowrap shrink-0 ${
                   pyramid3D.showCrossSection
                     ? 'bg-amber-50 border-amber-300 text-amber-800'
                     : 'border-slate-200 hover:bg-slate-100'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Thiết diện MNPQ</span>
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                <span>Thiết diện</span>
               </button>
             </>
           )}
 
-          {/* Font size & Label Settings Menu (Matches 00:45 & 01:08 in Video!) */}
+          {/* Font size & Label Settings Menu */}
           <button
             onClick={() => setShowSettingsMenu((v) => !v)}
-            className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1 border border-slate-200"
+            className="px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1 border border-slate-200 whitespace-nowrap shrink-0"
             title="Cài đặt cỡ tên điểm (Tự động cập nhật sang đề thi)"
           >
-            <Sliders className="w-3.5 h-3.5 text-slate-600" />
-            <span>Cỡ tên điểm: {pyramid3D.labelFontSize}px</span>
+            <Sliders className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+            <span>Cỡ chữ: {pyramid3D.labelFontSize}px</span>
           </button>
 
           {boardInkStrokes.length > 0 && (
             <button
               onClick={clearBoardInk}
-              className="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 flex items-center gap-1 border border-red-200"
+              className="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 flex items-center gap-1 border border-red-200 whitespace-nowrap shrink-0"
               title="Xoá chữ viết tay XP-Pen trên bảng vẽ"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
               <span>Xoá mực</span>
             </button>
           )}

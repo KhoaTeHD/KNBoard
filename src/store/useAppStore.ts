@@ -14,6 +14,82 @@ import {
   WorkspaceMode,
 } from '../types/exam';
 
+const BLANK_INITIAL_QUESTIONS: ExamQuestion[] = [
+  {
+    id: 'q1',
+    part: 'multiple-choice',
+    number: 1,
+    stemText: 'Nháy đúp vào đây để nhập nội dung câu hỏi (hoặc bấm Công thức để chèn toán học)...',
+    options: {
+      A: 'Phương án A',
+      B: 'Phương án B',
+      C: 'Phương án C',
+      D: 'Phương án D',
+    },
+    correctOption: 'A',
+    optionLayout: '1-row',
+    solutionSpaceHeight: 0,
+    inkStrokes: [],
+  },
+];
+
+const DEMO_SAMPLE_QUESTIONS: ExamQuestion[] = [
+  {
+    id: 'q1',
+    part: 'multiple-choice',
+    number: 1,
+    stemText:
+      'Cho hình chóp $S.ABCD$ có đáy là hình vuông. Gọi $M, N, P, Q$ lần lượt là trung điểm của $SA, SB, SC, SD$. Tỉ số diện tích của $MNPQ$ và $ABCD$ bằng',
+    options: {
+      A: '$\\frac{1}{2}$',
+      B: '$\\frac{1}{4}$',
+      C: '$\\frac{1}{3}$',
+      D: '$\\frac{1}{8}$',
+    },
+    correctOption: 'B',
+    optionLayout: '1-row',
+    linkedFigure: {
+      boardType: '3d-pyramid',
+      width: 245,
+      align: 'center',
+    },
+    solutionSpaceHeight: 0,
+    inkStrokes: [],
+  },
+  {
+    id: 'q2',
+    part: 'multiple-choice',
+    number: 2,
+    stemText:
+      'Cho hàm số $y = x^3 - 3x$ có đồ thị như hình vẽ. Hàm số đã cho đồng biến trên khoảng nào dưới đây?',
+    options: {
+      A: '$(-1; 1)$',
+      B: '$(1; +\\infty)$',
+      C: '$(-\\infty; 1)$',
+      D: '$(-2; 2)$',
+    },
+    correctOption: 'B',
+    optionLayout: '1-row',
+    linkedFigure: {
+      boardType: 'function-graph',
+      width: 250,
+      align: 'center',
+    },
+    solutionSpaceHeight: 0,
+    inkStrokes: [],
+  },
+  {
+    id: 'q3',
+    part: 'essay',
+    number: 3,
+    points: '1 điểm',
+    stemText: 'Giải hệ phương trình $\\begin{cases} x + y = 3 \\\\ x - y = 1 \\end{cases}$',
+    optionLayout: '1-row',
+    solutionSpaceHeight: 0,
+    inkStrokes: [],
+  },
+];
+
 interface AppState {
   workspaceMode: WorkspaceMode;
   activeBoardTab: BoardTabMode;
@@ -26,16 +102,16 @@ interface AppState {
   penTool: PenToolType;
   penColor: string;
   penSize: number;
-  eraserSize: number; // Bán kính cục tẩy (6px -> 55px)
-  shapeSnapEnabled: boolean; // Giữ bút 0.5s tự nắn thẳng
+  eraserSize: number;
+  shapeSnapEnabled: boolean;
   boardInkStrokes: InkStroke[];
-  pageInkStrokes: Record<number, InkStroke[]>; // Viết trực tiếp lên từng Trang Đề Thi A4!
+  pageInkStrokes: Record<number, InkStroke[]>;
 
   // Exam Document Header & Questions
   examHeader: ExamHeaderInfo;
   questions: ExamQuestion[];
 
-  // Interactive Math Board States (Live-Linked to Exam Figures!)
+  // Interactive Math Board States
   pyramid3D: Pyramid3DState;
   functionGraph: FunctionGraphState;
   triangle2D: Triangle2DState;
@@ -47,6 +123,10 @@ interface AppState {
   setActiveQuestionId: (id: string | null) => void;
   setMathModalOpen: (open: boolean) => void;
   setHideAnswersForStudentPdf: (hide: boolean) => void;
+
+  // Document Presets
+  resetToBlankExam: () => void;
+  loadSampleDemoExam: () => void;
 
   // XP-Pen Actions
   setPenTool: (tool: PenToolType) => void;
@@ -76,6 +156,7 @@ interface AppState {
   ) => void;
   removeQuestionFigure: (questionId: string) => void;
   addQuestion: (part: 'multiple-choice' | 'essay') => void;
+  deleteQuestion: (questionId: string) => void;
   parseSmartInputLine: (questionId: string, rawLine: string) => void;
   insertFormulaIntoActiveQuestion: (latex: string) => void;
   toggleQuestionSolutionSpace: (questionId: string) => void;
@@ -116,82 +197,8 @@ export const useAppStore = create<AppState>((set) => ({
     duration: 'Thời gian làm bài: 90 phút',
   },
 
-  questions: [
-    {
-      id: 'q1',
-      part: 'multiple-choice',
-      number: 1,
-      stemText:
-        'Cho hình chóp $S.ABCD$ có đáy là hình vuông. Gọi $M, N, P, Q$ lần lượt là trung điểm của $SA, SB, SC, SD$. Tỉ số diện tích của $MNPQ$ và $ABCD$ bằng',
-      options: {
-        A: '$\\frac{1}{2}$',
-        B: '$\\frac{1}{4}$',
-        C: '$\\frac{1}{3}$',
-        D: '$\\frac{1}{8}$',
-      },
-      correctOption: 'B',
-      optionLayout: '1-row',
-      linkedFigure: {
-        boardType: '3d-pyramid',
-        width: 245,
-        align: 'center',
-      },
-      solutionSpaceHeight: 0,
-      inkStrokes: [],
-    },
-    {
-      id: 'q2',
-      part: 'multiple-choice',
-      number: 2,
-      stemText:
-        'Cho hàm số $y = x^3 - 3x$ có đồ thị như hình vẽ. Hàm số đã cho đồng biến trên khoảng nào dưới đây?',
-      options: {
-        A: '$(-1; 1)$',
-        B: '$(1; +\\infty)$',
-        C: '$(-\\infty; 1)$',
-        D: '$(-2; 2)$',
-      },
-      correctOption: 'B',
-      optionLayout: '1-row',
-      linkedFigure: {
-        boardType: 'function-graph',
-        width: 250,
-        align: 'center',
-      },
-      solutionSpaceHeight: 0,
-      inkStrokes: [],
-    },
-    {
-      id: 'q3',
-      part: 'essay',
-      number: 3,
-      points: '1 điểm',
-      stemText: 'Giải hệ phương trình $\\begin{cases} x + y = 3 \\\\ x - y = 1 \\end{cases}$',
-      optionLayout: '1-row',
-      solutionSpaceHeight: 0,
-      inkStrokes: [],
-    },
-    {
-      id: 'q4',
-      part: 'essay',
-      number: 4,
-      points: '1 điểm',
-      stemText: 'Tính tích phân $\\int_{0}^{1} \\sqrt{x} \\, dx$',
-      optionLayout: '1-row',
-      solutionSpaceHeight: 0,
-      inkStrokes: [],
-    },
-    {
-      id: 'q5',
-      part: 'essay',
-      number: 5,
-      points: '1 điểm',
-      stemText: 'Tính giới hạn $\\lim_{x \\to +\\infty} \\frac{2x + 1}{x - 3}$',
-      optionLayout: '1-row',
-      solutionSpaceHeight: 0,
-      inkStrokes: [],
-    },
-  ],
+  // Start clean without cluttered demo seed data!
+  questions: BLANK_INITIAL_QUESTIONS,
 
   pyramid3D: {
     shape3DType: 'pyramid-quad',
@@ -239,13 +246,48 @@ export const useAppStore = create<AppState>((set) => ({
   setWorkspaceMode: (workspaceMode) =>
     set((state) => ({
       workspaceMode,
-      penTool: workspaceMode === 'teaching' && state.penTool === 'select' ? 'pen' : state.penTool,
+      penTool:
+        workspaceMode === 'teaching' && state.penTool === 'select'
+          ? 'pen'
+          : state.penTool,
     })),
   setActiveBoardTab: (activeBoardTab) => set({ activeBoardTab }),
   setBoardTheme: (boardTheme) => set({ boardTheme }),
   setActiveQuestionId: (activeQuestionId) => set({ activeQuestionId }),
   setMathModalOpen: (isMathModalOpen) => set({ isMathModalOpen }),
-  setHideAnswersForStudentPdf: (hideAnswersForStudentPdf) => set({ hideAnswersForStudentPdf }),
+  setHideAnswersForStudentPdf: (hideAnswersForStudentPdf) =>
+    set({ hideAnswersForStudentPdf }),
+
+  resetToBlankExam: () =>
+    set({
+      questions: [
+        {
+          id: `q_${Date.now()}`,
+          part: 'multiple-choice',
+          number: 1,
+          stemText:
+            'Nháy đúp vào đây để nhập nội dung câu hỏi (hoặc bấm Công thức để chèn toán học)...',
+          options: {
+            A: 'Phương án A',
+            B: 'Phương án B',
+            C: 'Phương án C',
+            D: 'Phương án D',
+          },
+          correctOption: 'A',
+          optionLayout: '1-row',
+          solutionSpaceHeight: 0,
+          inkStrokes: [],
+        },
+      ],
+      pageInkStrokes: {},
+      boardInkStrokes: [],
+    }),
+
+  loadSampleDemoExam: () =>
+    set({
+      questions: DEMO_SAMPLE_QUESTIONS.map((q) => ({ ...q })),
+      activeQuestionId: 'q1',
+    }),
 
   setPenTool: (penTool) => set({ penTool }),
   setPenColor: (penColor) => set({ penColor }),
@@ -255,7 +297,9 @@ export const useAppStore = create<AppState>((set) => ({
   addBoardInkStroke: (stroke) =>
     set((s) => ({ boardInkStrokes: [...s.boardInkStrokes, stroke] })),
   removeBoardInkStroke: (id) =>
-    set((s) => ({ boardInkStrokes: s.boardInkStrokes.filter((st) => st.id !== id) })),
+    set((s) => ({
+      boardInkStrokes: s.boardInkStrokes.filter((st) => st.id !== id),
+    })),
   replaceBoardInkStrokes: (boardInkStrokes) => set({ boardInkStrokes }),
   clearBoardInk: () => set({ boardInkStrokes: [] }),
   addPageInkStroke: (pageIdx, stroke) =>
@@ -305,12 +349,16 @@ export const useAppStore = create<AppState>((set) => ({
 
   setQuestionOptionLayout: (id, optionLayout) =>
     set((s) => ({
-      questions: s.questions.map((q) => (q.id === id ? { ...q, optionLayout } : q)),
+      questions: s.questions.map((q) =>
+        q.id === id ? { ...q, optionLayout } : q
+      ),
     })),
 
   setQuestionCorrectOption: (id, correctOption) =>
     set((s) => ({
-      questions: s.questions.map((q) => (q.id === id ? { ...q, correctOption } : q)),
+      questions: s.questions.map((q) =>
+        q.id === id ? { ...q, correctOption } : q
+      ),
     })),
 
   linkBoardFigureToQuestion: (questionId, boardType) =>
@@ -355,8 +403,14 @@ export const useAppStore = create<AppState>((set) => ({
               id: newId,
               part: 'multiple-choice',
               number: nextNum,
-              stemText: 'Nhập nội dung câu hỏi trắc nghiệm (hoặc gõ liền A. ... B. ... C. ... D. ...):',
-              options: { A: 'Phương án A', B: 'Phương án B', C: 'Phương án C', D: 'Phương án D' },
+              stemText:
+                'Nháy đúp để nhập câu hỏi (có thể gõ liền A. ... B. ... C. ... D. ... ở cuối dòng):',
+              options: {
+                A: 'Phương án A',
+                B: 'Phương án B',
+                C: 'Phương án C',
+                D: 'Phương án D',
+              },
               correctOption: 'A',
               optionLayout: '1-row',
               solutionSpaceHeight: 0,
@@ -367,7 +421,7 @@ export const useAppStore = create<AppState>((set) => ({
               part: 'essay',
               number: nextNum,
               points: '1 điểm',
-              stemText: 'Nhập nội dung câu hỏi tự luận...',
+              stemText: 'Nháy đúp để nhập câu hỏi tự luận...',
               optionLayout: '1-row',
               solutionSpaceHeight: 0,
               inkStrokes: [],
@@ -378,7 +432,16 @@ export const useAppStore = create<AppState>((set) => ({
       };
     }),
 
-  // Smart parser: If teacher types "A. 1/2 B. 1/4 C. 1/3 D. 1/8" on one line, automatically splits into 4 aligned options!
+  deleteQuestion: (questionId) =>
+    set((s) => {
+      const filtered = s.questions.filter((q) => q.id !== questionId);
+      const renumbered = filtered.map((q, idx) => ({ ...q, number: idx + 1 }));
+      return {
+        questions: renumbered,
+        activeQuestionId: renumbered[0]?.id || null,
+      };
+    }),
+
   parseSmartInputLine: (questionId, rawLine) =>
     set((s) => {
       const regex = /A\.\s*(.+?)\s+B\.\s*(.+?)\s+C\.\s*(.+?)\s+D\.\s*(.+)$/i;
@@ -443,7 +506,10 @@ export const useAppStore = create<AppState>((set) => ({
     set((s) => ({
       questions: s.questions.map((q) =>
         q.id === questionId
-          ? { ...q, inkStrokes: q.inkStrokes.filter((st) => st.id !== strokeId) }
+          ? {
+              ...q,
+              inkStrokes: q.inkStrokes.filter((st) => st.id !== strokeId),
+            }
           : q
       ),
     })),
@@ -487,14 +553,15 @@ export const useAppStore = create<AppState>((set) => ({
       const mc = s.questions.filter((q) => q.part === 'multiple-choice');
       const essay = s.questions.filter((q) => q.part === 'essay');
 
-      // Shuffle multiple-choice order & permute options A/B/C/D while preserving correctOption
       const shuffledMc = [...mc]
         .sort(() => Math.random() - 0.5)
         .map((q, idx) => {
           if (!q.options) return { ...q, number: idx + 1 };
-          const entries: { key: 'A' | 'B' | 'C' | 'D'; val: string; isCorrect: boolean }[] = (
-            ['A', 'B', 'C', 'D'] as const
-          ).map((k) => ({
+          const entries: {
+            key: 'A' | 'B' | 'C' | 'D';
+            val: string;
+            isCorrect: boolean;
+          }[] = (['A', 'B', 'C', 'D'] as const).map((k) => ({
             key: k,
             val: q.options![k],
             isCorrect: q.correctOption === k,
@@ -512,7 +579,8 @@ export const useAppStore = create<AppState>((set) => ({
             ...q,
             number: idx + 1,
             options: newOptions,
-            correctOption: newCorrectIdx >= 0 ? keys[newCorrectIdx] : q.correctOption,
+            correctOption:
+              newCorrectIdx >= 0 ? keys[newCorrectIdx] : q.correctOption,
           };
         });
 
