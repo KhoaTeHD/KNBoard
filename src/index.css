@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom print rules so PDF export looks like an authentic A4 Exam Paper */
+@media print {
+  body {
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+  #root, main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
