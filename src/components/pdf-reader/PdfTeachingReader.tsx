@@ -378,8 +378,8 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
           </div>
         )}
 
-        {/* Scrollable PDF & Blank Scratchpad Canvas Stream */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-8">
+        {/* Scrollable PDF & Blank Scratchpad Canvas Stream — Fluid Width, Zero Horizontal Scroll! */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 flex flex-col items-center gap-6">
           {loadingPdf && (
             <div className="py-12 px-6 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center gap-3 text-sm font-medium text-blue-700">
               <Sparkles className="w-5 h-5 animate-spin" />
@@ -390,46 +390,47 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
           {slides.map((slide, sIdx) => {
             const strokes = slideStrokes[slide.id] || [];
             const scaledW = Math.round(slide.width * zoomScale);
-            const scaledH = Math.round(slide.height * zoomScale);
+            const aspectRatio = slide.height / (slide.width || 1);
 
             return (
               <div
                 key={slide.id}
                 style={{
-                  width: `${scaledW}px`,
-                  minHeight: `${scaledH}px`,
+                  width: '100%',
+                  maxWidth: `${scaledW}px`,
                   pageBreakAfter: 'always',
                 }}
                 className={`relative rounded-sm shadow-xl border overflow-hidden transition print:shadow-none print:border-none ${sheetBgClass}`}
               >
                 {/* Top Slide Header Bar */}
-                <div className="h-8 px-3 bg-slate-900/5 border-b border-slate-200/60 flex items-center justify-between text-[11px] font-sans print:hidden">
-                  <span className="font-semibold text-slate-600">
+                <div className="min-h-[32px] px-3 py-1 bg-slate-900/5 border-b border-slate-200/60 flex flex-wrap items-center justify-between gap-1 text-[11px] font-sans print:hidden">
+                  <span className="font-semibold text-slate-600 truncate">
                     {slide.label} (Trang {sIdx + 1}/{slides.length})
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => insertBlankSheetAfter(sIdx)}
-                      className="px-2 py-0.5 rounded bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 font-medium"
+                      className="px-2 py-0.5 rounded bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 font-medium whitespace-nowrap"
                       title="Chèn thêm 1 trang giấy nháp XP-Pen ngay dưới trang này để giải tiếp"
                     >
-                      + Chèn trang giải bài bên dưới
+                      + Chèn trang giải bài
                     </button>
                     {strokes.length > 0 && (
                       <button
                         onClick={() => clearSlideStrokes(slide.id)}
-                        className="px-2 py-0.5 rounded bg-white hover:bg-red-50 text-red-600 border border-red-200 font-medium flex items-center gap-1"
+                        className="px-2 py-0.5 rounded bg-white hover:bg-red-50 text-red-600 border border-red-200 font-medium flex items-center gap-1 whitespace-nowrap"
                       >
-                        <Trash2 className="w-3 h-3" /> Xoá mực trang này
+                        <Trash2 className="w-3 h-3" /> Xoá mực
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Page Body: PDF/Image Background OR Lined Grid Paper */}
+                {/* Page Body: Fluid Aspect-Ratio Box so PDF / Blank Sheet NEVER causes horizontal scroll! */}
                 <div
                   style={{
-                    height: `${scaledH - 32}px`,
+                    aspectRatio: `${slide.width} / ${slide.height}`,
+                    minHeight: slide.type === 'blank-sheet' ? `${Math.round(520 * zoomScale)}px` : undefined,
                     backgroundImage:
                       slide.type === 'blank-sheet'
                         ? boardTheme === 'chalkboard'

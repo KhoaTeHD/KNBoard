@@ -495,39 +495,34 @@ export const MathBoardPane: React.FC = () => {
           )}
         </div>
 
-        {/* Bottom Right Drag-to-Exam Guide Box (Matches the Dark Tooltip at 00:01 in Video!) */}
-        <div className="absolute bottom-3 right-3 z-30 w-64 rounded-xl bg-slate-900/95 text-white p-3 shadow-xl border border-slate-700">
-          <p className="text-[11px] leading-relaxed text-slate-300 mb-2">
-            Vẽ hình trên bảng bên phải, giữ chuột để xoay 3D — kéo thả hình sang câu hỏi bên trái, hoặc bấm nút dưới để chèn ngay:
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handleQuickSendToExam()}
-              className="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-blue-600 border border-slate-600 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
-            >
-              {justTransferred ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-300">Đã đồng bộ sang Đề!</span>
-                </>
-              ) : (
-                <>
-                  <SendToBack className="w-3.5 h-3.5" />
-                  <span>← Kéo hình sang trang</span>
-                </>
-              )}
-            </button>
-          </div>
-          {/* Quick question target selector */}
-          <div className="mt-1.5 flex items-center gap-1 overflow-x-auto pt-1 border-t border-slate-800">
-            <span className="text-[10px] text-slate-400 shrink-0">Gắn vào:</span>
+        {/* Bottom Right Compact Send-to-Exam Pill (Zero clutter, takes almost no space!) */}
+        <div className="absolute bottom-3 right-3 z-30 flex items-center gap-1.5 rounded-xl bg-slate-900/95 text-white px-3 py-1.5 shadow-xl border border-slate-700 max-w-full">
+          <button
+            onClick={() => handleQuickSendToExam()}
+            className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 transition"
+            title="Hoặc giữ chuột kéo trực tiếp hình trên bảng thả sang câu hỏi bên trái"
+          >
+            {justTransferred ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                <span>Đã chèn vào Đề!</span>
+              </>
+            ) : (
+              <>
+                <SendToBack className="w-3.5 h-3.5 shrink-0" />
+                <span>← Đưa hình vào Đề</span>
+              </>
+            )}
+          </button>
+
+          <div className="hidden sm:flex items-center gap-1 overflow-x-auto pl-1.5 border-l border-slate-700">
             {questions.slice(0, 4).map((q) => (
               <button
                 key={q.id}
                 onClick={() => handleQuickSendToExam(q.id)}
-                className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${
+                className={`px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap shrink-0 transition ${
                   activeQuestionId === q.id
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-amber-500 text-slate-950 font-bold'
                     : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >

@@ -251,9 +251,9 @@ export const ExamEditorPane: React.FC = () => {
 
     const gridColsClass =
       q.optionLayout === '1-row'
-        ? 'grid-cols-4'
+        ? 'grid-cols-2 sm:grid-cols-4'
         : q.optionLayout === '2-row'
-        ? 'grid-cols-2'
+        ? 'grid-cols-1 sm:grid-cols-2'
         : 'grid-cols-1';
 
     return (
@@ -407,7 +407,7 @@ export const ExamEditorPane: React.FC = () => {
               }`}
             >
               <div
-                style={{ width: `${q.linkedFigure.width}px` }}
+                style={{ width: `${q.linkedFigure.width}px`, maxWidth: '100%' }}
                 className={`relative rounded transition select-none ${
                   isFigSelected
                     ? 'ring-2 ring-blue-600 bg-blue-50/10'
@@ -807,8 +807,8 @@ export const ExamEditorPane: React.FC = () => {
         </div>
       </div>
 
-      {/* Scrollable Multi-Page A4 Container */}
-      <div className="flex-1 overflow-y-auto flex flex-col items-center py-6 px-4 gap-8">
+      {/* Scrollable Multi-Page A4 Container — Zero Horizontal Scroll! */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-4 px-2 sm:px-4 gap-6">
 
       {/* Render Multi-Page A4 Sheets (Trang 1, Trang 2, ...) */}
       {paginatedPages.map((pageQuestions, pageIdx) => (
@@ -816,22 +816,22 @@ export const ExamEditorPane: React.FC = () => {
           key={pageIdx}
           onClick={() => setSelectedFigureQuestionId(null)}
           style={{ pageBreakAfter: 'always' }}
-          className={`relative w-full max-w-[740px] min-h-[1040px] rounded-sm shadow-xl border px-10 py-8 flex flex-col justify-between transition print:shadow-none print:border-none print:p-0 ${paperBgClass}`}
+          className={`relative w-full max-w-[740px] min-h-[960px] rounded-sm shadow-xl border px-4 sm:px-7 lg:px-10 py-6 flex flex-col justify-between overflow-x-hidden transition print:shadow-none print:border-none print:p-0 ${paperBgClass}`}
         >
           <div>
             {/* Show Official Exam Header Table ONLY on Page 1 */}
             {pageIdx === 0 && (
               <>
                 <div className="border border-slate-400/80 mb-3 font-serif">
-                  <div className="grid grid-cols-2 divide-x divide-slate-400/80 text-center py-2 px-3">
-                    <div>
+                  <div className="grid grid-cols-2 divide-x divide-slate-400/80 text-center py-2 px-2">
+                    <div className="min-w-0">
                       <input
                         type="text"
                         value={examHeader.department}
                         onChange={(e) =>
                           updateExamHeader({ department: e.target.value })
                         }
-                        className="w-full text-center font-bold text-[13px] bg-transparent focus:outline-none uppercase"
+                        className="w-full text-center font-bold text-[12px] sm:text-[13px] bg-transparent focus:outline-none uppercase truncate"
                       />
                       <input
                         type="text"
@@ -839,17 +839,17 @@ export const ExamEditorPane: React.FC = () => {
                         onChange={(e) =>
                           updateExamHeader({ school: e.target.value })
                         }
-                        className="w-full text-center font-bold text-[13px] bg-transparent focus:outline-none uppercase mt-0.5"
+                        className="w-full text-center font-bold text-[12px] sm:text-[13px] bg-transparent focus:outline-none uppercase mt-0.5 truncate"
                       />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <input
                         type="text"
                         value={examHeader.examTitle}
                         onChange={(e) =>
                           updateExamHeader({ examTitle: e.target.value })
                         }
-                        className="w-full text-center font-bold text-[13px] bg-transparent focus:outline-none uppercase"
+                        className="w-full text-center font-bold text-[12px] sm:text-[13px] bg-transparent focus:outline-none uppercase truncate"
                       />
                       <input
                         type="text"
@@ -857,7 +857,7 @@ export const ExamEditorPane: React.FC = () => {
                         onChange={(e) =>
                           updateExamHeader({ subjectAndGrade: e.target.value })
                         }
-                        className="w-full text-center font-bold text-[13px] bg-transparent focus:outline-none mt-0.5"
+                        className="w-full text-center font-bold text-[12px] sm:text-[13px] bg-transparent focus:outline-none mt-0.5 truncate"
                       />
                       <input
                         type="text"
@@ -865,19 +865,26 @@ export const ExamEditorPane: React.FC = () => {
                         onChange={(e) =>
                           updateExamHeader({ duration: e.target.value })
                         }
-                        className="w-full text-center italic text-[12px] bg-transparent focus:outline-none mt-0.5"
+                        className="w-full text-center italic text-[11px] sm:text-[12px] bg-transparent focus:outline-none mt-0.5 truncate"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Student Info Line */}
-                <div className="font-serif text-[14px] mb-4 flex items-center justify-between gap-2">
-                  <span>
-                    Họ và tên: ........................................................................
-                  </span>
-                  <span>Lớp: .................</span>
-                  <span>Số báo danh: ........................</span>
+                {/* Responsive Fluid Student Info Line (Never overflows horizontally!) */}
+                <div className="font-serif text-[13px] sm:text-[14px] mb-4 flex flex-wrap items-end justify-between gap-x-3 gap-y-1.5">
+                  <div className="flex items-end flex-1 min-w-[160px]">
+                    <span className="shrink-0 mr-1">Họ và tên:</span>
+                    <span className="flex-1 border-b border-dotted border-slate-500 h-4" />
+                  </div>
+                  <div className="flex items-end w-24 shrink-0">
+                    <span className="shrink-0 mr-1">Lớp:</span>
+                    <span className="flex-1 border-b border-dotted border-slate-500 h-4" />
+                  </div>
+                  <div className="flex items-end w-32 shrink-0">
+                    <span className="shrink-0 mr-1">SBD:</span>
+                    <span className="flex-1 border-b border-dotted border-slate-500 h-4" />
+                  </div>
                 </div>
               </>
             )}

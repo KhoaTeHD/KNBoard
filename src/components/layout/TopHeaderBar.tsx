@@ -15,6 +15,7 @@ import {
   Wand2,
   Trash2,
   DownloadCloud,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { BoardTheme, PenToolType, WorkspaceMode } from '../../types/exam';
@@ -55,6 +56,7 @@ export const TopHeaderBar: React.FC = () => {
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<ReleaseUpdateInfo | null>(null);
+  const [showPenSettingsPopover, setShowPenSettingsPopover] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -83,42 +85,42 @@ export const TopHeaderBar: React.FC = () => {
   }, []);
 
   return (
-    <header className="min-h-[46px] px-2.5 py-1 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 select-none z-40 print:hidden">
+    <header className="h-11 px-2.5 bg-white border-b border-slate-200 flex items-center justify-between gap-1.5 select-none z-40 print:hidden">
       {/* Left: Brand + Workspace Mode Switcher */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 min-w-0 shrink-0">
         <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-sm flex items-center justify-center shadow-sm shrink-0">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
             ∑
           </div>
-          <div className="flex items-center gap-1.5 whitespace-nowrap">
-            <span className="text-xs font-bold text-slate-900">KNBoard</span>
-            <button
-              onClick={() => setIsUpdateModalOpen(true)}
-              title="Bấm để kiểm tra cập nhật phiên bản mới từ GitHub Releases"
-              className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
-                updateInfo?.hasUpdate
-                  ? 'bg-amber-500 text-white animate-pulse shadow-sm'
-                  : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200'
-              }`}
-            >
-              <DownloadCloud className="w-2.5 h-2.5 shrink-0" />
-              <span>
-                {updateInfo?.hasUpdate
-                  ? `Bản mới v${updateInfo.latestVersion}`
-                  : `v${CURRENT_APP_VERSION}`}
-              </span>
-            </button>
-          </div>
+          <span className="text-xs font-bold text-slate-900 hidden sm:inline">
+            KNBoard
+          </span>
+          <button
+            onClick={() => setIsUpdateModalOpen(true)}
+            title="Bấm để kiểm tra cập nhật phiên bản mới từ GitHub Releases"
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+              updateInfo?.hasUpdate
+                ? 'bg-amber-500 text-white animate-pulse shadow-sm'
+                : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200'
+            }`}
+          >
+            <DownloadCloud className="w-2.5 h-2.5 shrink-0" />
+            <span>
+              {updateInfo?.hasUpdate
+                ? `v${updateInfo.latestVersion}`
+                : `v${CURRENT_APP_VERSION}`}
+            </span>
+          </button>
         </div>
 
-        {/* 4 Workspace Modes — Strictly whitespace-nowrap so buttons never wrap vertically */}
+        {/* 4 Workspace Modes — Ultra-clean, zero wrap, zero scroll */}
         <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-xs shrink-0">
           {(
             [
               { id: 'split', label: 'Chia đôi', icon: Columns },
               { id: 'editor-only', label: 'Soạn Đề', icon: FileEdit },
               { id: 'board-only', label: 'Bảng Vẽ', icon: Presentation },
-              { id: 'teaching', label: 'Giảng Dạy', icon: BookOpen },
+              { id: 'teaching', label: 'Mở PDF / Dạy', icon: BookOpen },
             ] as { id: WorkspaceMode; label: string; icon: React.ElementType }[]
           ).map((m) => {
             const Icon = m.icon;
@@ -141,12 +143,12 @@ export const TopHeaderBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: XP-Pen / Stylus Live Teaching Toolset */}
-      <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/90 overflow-x-auto max-w-full shrink-0">
+      {/* Center: Compact XP-Pen Toolset (Zero Horizontal Overflow!) */}
+      <div className="relative flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-xl border border-slate-200/90 shrink-0">
         {(
           [
-            { id: 'select', label: 'Chọn/Kéo', icon: MousePointer },
-            { id: 'pen', label: 'Bút viết', icon: PenTool },
+            { id: 'select', label: 'Chọn', icon: MousePointer },
+            { id: 'pen', label: 'Bút', icon: PenTool },
             { id: 'highlighter', label: 'Dạ quang', icon: Highlighter },
             { id: 'laser', label: 'Laser', icon: Sparkles },
             { id: 'eraser', label: 'Tẩy', icon: Eraser },
@@ -158,6 +160,7 @@ export const TopHeaderBar: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setPenTool(t.id)}
+              title={t.label}
               className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                 active
                   ? 'bg-blue-600 text-white shadow-sm'
@@ -165,14 +168,14 @@ export const TopHeaderBar: React.FC = () => {
               }`}
             >
               <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span>{t.label}</span>
+              <span className="hidden md:inline">{t.label}</span>
             </button>
           );
         })}
 
         <span className="text-slate-300 shrink-0">|</span>
 
-        {/* Pen Color Swatches */}
+        {/* Color Swatches */}
         <div className="flex items-center gap-1 shrink-0">
           {PEN_COLORS.map((c) => (
             <button
@@ -184,7 +187,7 @@ export const TopHeaderBar: React.FC = () => {
                 }
               }}
               title={c.label}
-              className={`w-4 h-4 rounded-full border shrink-0 transition transform ${
+              className={`w-3.5 h-3.5 rounded-full border shrink-0 transition transform ${
                 penColor === c.hex
                   ? 'scale-125 ring-2 ring-blue-500 ring-offset-1'
                   : 'border-slate-300 hover:scale-110'
@@ -194,69 +197,153 @@ export const TopHeaderBar: React.FC = () => {
           ))}
         </div>
 
-        <span className="text-slate-300 shrink-0">|</span>
+        {/* Inline Slider on large screens, Popover button on compact windows */}
+        <div className="hidden xl:flex items-center gap-1 pl-1.5 border-l border-slate-200 text-[11px] whitespace-nowrap shrink-0">
+          {penTool === 'eraser' ? (
+            <>
+              <span className="font-semibold text-red-700">
+                Tẩy: {eraserSize}
+              </span>
+              <input
+                type="range"
+                min="6"
+                max="55"
+                step="2"
+                value={eraserSize}
+                onChange={(e) => setEraserSize(parseInt(e.target.value, 10))}
+                className="w-14 accent-red-600 cursor-pointer"
+              />
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-blue-800">
+                Nét: {penSize.toFixed(1)}
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                step="0.4"
+                value={penSize}
+                onChange={(e) => {
+                  setPenSize(parseFloat(e.target.value));
+                  if (penTool === 'select') setPenTool('pen');
+                }}
+                className="w-14 accent-blue-600 cursor-pointer"
+              />
+            </>
+          )}
+        </div>
 
-        {/* Compact Pen Size OR Eraser Size Controls */}
-        {penTool === 'eraser' ? (
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-red-50/70 border border-red-200/80 text-[11px] whitespace-nowrap shrink-0">
-            <span className="font-semibold text-red-700">
-              Cỡ tẩy: {eraserSize}
-            </span>
-            <input
-              type="range"
-              min="6"
-              max="55"
-              step="2"
-              value={eraserSize}
-              onChange={(e) => setEraserSize(parseInt(e.target.value, 10))}
-              className="w-14 accent-red-600 cursor-pointer"
-              title="Kéo để chỉnh độ to/nhỏ của cục tẩy"
-            />
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-blue-50/60 border border-blue-200/80 text-[11px] whitespace-nowrap shrink-0">
-            <span className="font-semibold text-blue-800">
-              Cỡ bút: {penSize.toFixed(1)}
-            </span>
-            <input
-              type="range"
-              min="1"
-              max="10"
-              step="0.4"
-              value={penSize}
-              onChange={(e) => {
-                setPenSize(parseFloat(e.target.value));
-                if (penTool === 'select') setPenTool('pen');
-              }}
-              className="w-14 accent-blue-600 cursor-pointer"
-              title="Kéo để chỉnh độ dày nét bút XP-Pen"
-            />
-          </div>
-        )}
-
-        {/* Hold 0.45s to Snap Straight Line Toggle */}
+        {/* Compact Pen/Eraser Size Popover Trigger for smaller windows */}
         <button
-          onClick={() => setShapeSnapEnabled(!shapeSnapEnabled)}
-          title="Giữ bút XP-Pen đứng yên 0.45 giây ở cuối nét để tự động nắn thành đường thẳng tắp"
-          className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border whitespace-nowrap shrink-0 transition ${
-            shapeSnapEnabled
-              ? 'bg-amber-50 border-amber-300 text-amber-800'
-              : 'bg-white border-slate-200 text-slate-500'
-          }`}
+          onClick={() => setShowPenSettingsPopover((v) => !v)}
+          title="Chỉnh cỡ bút, cỡ tẩy & chế độ tự nắn thẳng"
+          className="px-1.5 py-1 rounded-lg hover:bg-slate-200/70 text-slate-700 flex items-center gap-1 text-[11px] font-medium whitespace-nowrap shrink-0"
         >
-          <Wand2 className="w-3 h-3 shrink-0" />
-          <span>Nắn thẳng</span>
+          <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span className="xl:hidden">
+            {penTool === 'eraser' ? `${eraserSize}px` : `${penSize.toFixed(1)}`}
+          </span>
         </button>
 
         {/* Clear All Ink Button */}
         <button
           onClick={clearAllExamInk}
           title="Xoá toàn bộ nét bút XP-Pen trên đề thi và bảng vẽ"
-          className="px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 whitespace-nowrap shrink-0 transition"
+          className="px-1.5 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1 text-red-600 hover:bg-red-50 whitespace-nowrap shrink-0 transition"
         >
-          <Trash2 className="w-3 h-3 shrink-0" />
-          <span>Xoá mực</span>
+          <Trash2 className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden 2xl:inline">Xoá mực</span>
         </button>
+
+        {/* Pen & Eraser Settings Popover */}
+        {showPenSettingsPopover && (
+          <div className="absolute top-10 right-0 w-64 rounded-xl bg-white shadow-2xl border border-slate-200 p-3 space-y-3 z-50 text-xs">
+            <div>
+              <div className="flex justify-between font-semibold text-slate-700 mb-1">
+                <span>Độ dày nét bút XP-Pen</span>
+                <span className="text-blue-600">{penSize.toFixed(1)}px</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                step="0.4"
+                value={penSize}
+                onChange={(e) => {
+                  setPenSize(parseFloat(e.target.value));
+                  if (penTool === 'select') setPenTool('pen');
+                }}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+              <div className="flex gap-1 mt-1">
+                {[
+                  { label: 'Mảnh (1.6)', val: 1.6 },
+                  { label: 'Vừa (2.8)', val: 2.8 },
+                  { label: 'Đậm (5.0)', val: 5.0 },
+                ].map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => setPenSize(p.val)}
+                    className="flex-1 py-1 rounded bg-slate-100 hover:bg-blue-50 text-[11px] font-medium"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex justify-between font-semibold text-slate-700 mb-1">
+                <span>Bán kính Cục Tẩy</span>
+                <span className="text-red-600">{eraserSize}px</span>
+              </div>
+              <input
+                type="range"
+                min="6"
+                max="55"
+                step="2"
+                value={eraserSize}
+                onChange={(e) => {
+                  setEraserSize(parseInt(e.target.value, 10));
+                  setPenTool('eraser');
+                }}
+                className="w-full accent-red-600 cursor-pointer"
+              />
+              <div className="flex gap-1 mt-1">
+                {[
+                  { label: 'Nhỏ (10)', val: 10 },
+                  { label: 'Vừa (20)', val: 20 },
+                  { label: 'To (42)', val: 42 },
+                ].map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => {
+                      setEraserSize(p.val);
+                      setPenTool('eraser');
+                    }}
+                    className="flex-1 py-1 rounded bg-slate-100 hover:bg-red-50 text-[11px] font-medium"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-[11px] font-medium text-slate-700">
+                Giữ bút 0.45s tự nắn thẳng
+              </span>
+              <input
+                type="checkbox"
+                checked={shapeSnapEnabled}
+                onChange={(e) => setShapeSnapEnabled(e.target.checked)}
+                className="rounded accent-blue-600 w-4 h-4"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right: Math Formula Button ("∫ Công thức") + Eye-Care Projector Theme */}
@@ -266,7 +353,7 @@ export const TopHeaderBar: React.FC = () => {
           className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
         >
           <Sigma className="w-3.5 h-3.5 shrink-0" />
-          <span>∫ Công thức</span>
+          <span>Công thức</span>
         </button>
 
         <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs shrink-0">
@@ -282,15 +369,14 @@ export const TopHeaderBar: React.FC = () => {
               <button
                 key={th.id}
                 onClick={() => setBoardTheme(th.id)}
-                className={`px-2 py-1 rounded flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+                className={`p-1.5 rounded flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                   boardTheme === th.id
                     ? 'bg-white text-slate-900 shadow-sm font-medium'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
                 title={`Chế độ màu nền: ${th.label}`}
               >
-                <Icon className="w-3 h-3 shrink-0" />
-                <span className="hidden 2xl:inline">{th.label}</span>
+                <Icon className="w-3.5 h-3.5 shrink-0" />
               </button>
             );
           })}
