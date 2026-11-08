@@ -1,7 +1,7 @@
 {
   "name": "knboard",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "KNBoard - Ứng dụng Soạn Đề Thi Thông Minh, Bảng Vẽ Toán 2D/3D & Trình Chiếu Giảng Dạy XP-Pen",
   "type": "module",
   "scripts": {

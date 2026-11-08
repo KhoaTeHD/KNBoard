@@ -153,7 +153,7 @@ export const MathBoardPane: React.FC = () => {
       {/* Board Top Sub-Toolbar (Responsive, never wraps text into vertical columns) */}
       <div className="min-h-[40px] px-2.5 py-1 border-b border-slate-200/80 bg-white/95 text-slate-800 flex flex-wrap items-center justify-between gap-1.5 z-30 text-xs">
         {/* Left: Geometry Mode Tabs */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex flex-wrap items-center gap-1">
           {(
             [
               { id: '3d-pyramid', label: 'Không gian 3D' },
@@ -242,7 +242,7 @@ export const MathBoardPane: React.FC = () => {
 
           {/* Color Swatch Popover */}
           {showColorPalette && (
-            <div className="absolute top-9 right-24 bg-white border border-slate-200 rounded-xl shadow-xl p-3 w-56 z-50">
+            <div className="absolute top-9 right-0 bg-white border border-slate-200 rounded-xl shadow-xl p-3 w-56 z-50">
               <div className="text-[11px] font-semibold text-slate-500 mb-1.5">
                 Màu thiết diện (MNPQ):
               </div>

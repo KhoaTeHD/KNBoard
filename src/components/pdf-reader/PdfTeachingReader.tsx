@@ -279,9 +279,9 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5">
           {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+          <div className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 shrink-0">
             <button
               onClick={() => setZoomScale((z) => Math.max(0.65, +(z - 0.1).toFixed(2)))}
               className="p-0.5 hover:bg-white rounded"
