@@ -56,15 +56,24 @@ export const TopHeaderBar: React.FC = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<ReleaseUpdateInfo | null>(null);
 
-  // Silent background check on startup — automatically pops up modal if a newer GitHub Release exists!
+  // Silent background check on startup — automatically pops up modal AND auto-installs if running in Tauri!
   useEffect(() => {
     let mounted = true;
     checkAppUpdate()
-      .then((info) => {
+      .then(async (info) => {
         if (!mounted) return;
         setUpdateInfo(info);
         if (info.hasUpdate) {
           setIsUpdateModalOpen(true);
+          // If running inside Tauri Desktop, automatically download, install, and restart into the new version!
+          if (info.isTauriNativeUpdate) {
+            try {
+              const { performTauriNativeUpdate } = await import('../../core/autoUpdater');
+              await performTauriNativeUpdate();
+            } catch {
+              // If auto-install requires user confirmation, modal is already open
+            }
+          }
         }
       })
       .catch(() => {

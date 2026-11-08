@@ -12,6 +12,8 @@ tsconfig.tsbuildinfo
 # Tauri / Rust / Desktop build artifacts
 src-tauri/target/
 src-tauri/WixTools/
+src-tauri/tauri-updater.key
+src-tauri/tauri-updater.key.pub
 desktop-shell/bin/
 desktop-shell/obj/
 release/
