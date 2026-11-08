@@ -9,9 +9,12 @@ dist-ssr/
 *.local
 tsconfig.tsbuildinfo
 
-# Tauri / Rust build artifacts
+# Tauri / Rust / Desktop build artifacts
 src-tauri/target/
 src-tauri/WixTools/
+desktop-shell/bin/
+desktop-shell/obj/
+release/
 
 # Logs & OS files
 logs

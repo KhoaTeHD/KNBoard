@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "bump-version": "npx tsx scripts/bump-version.ts"
+    "bump-version": "npx tsx scripts/bump-version.ts",
+    "build:exe": "npm run build && dotnet publish desktop-shell/KNBoard.csproj -c Release -r win-x64 --self-contained false -o release/KNBoard-win-x64"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
