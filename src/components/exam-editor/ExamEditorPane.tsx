@@ -97,7 +97,31 @@ export const ExamEditorPane: React.FC = () => {
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [selectedFigureQuestionId, setSelectedFigureQuestionId] = useState<string | null>(null);
   const [dragOverQuestionId, setDragOverQuestionId] = useState<string | null>(null);
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [openMenu, setOpenMenu] = useState<'exam-tools' | 'download' | null>(null);
+  const subToolbarRef = useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    const handlePointerDownOutside = (e: PointerEvent) => {
+      if (
+        openMenu &&
+        subToolbarRef.current &&
+        !subToolbarRef.current.contains(e.target as Node)
+      ) {
+        setOpenMenu(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenMenu(null);
+      }
+    };
+    window.addEventListener('pointerdown', handlePointerDownOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDownOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openMenu]);
 
   // Live 3D rotation drag inside the exam paper
   const inline3DDragRef = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(
@@ -173,7 +197,7 @@ export const ExamEditorPane: React.FC = () => {
 
   const handlePrintStudentPdf = () => {
     setHideAnswersForStudentPdf(true);
-    setShowDownloadMenu(false);
+    setOpenMenu(null);
     window.setTimeout(() => {
       window.print();
       setHideAnswersForStudentPdf(false);
@@ -182,14 +206,14 @@ export const ExamEditorPane: React.FC = () => {
 
   const handlePrintTeacherLecturePdf = () => {
     setHideAnswersForStudentPdf(false);
-    setShowDownloadMenu(false);
+    setOpenMenu(null);
     window.setTimeout(() => {
       window.print();
     }, 180);
   };
 
   const handleExportWord = async () => {
-    setShowDownloadMenu(false);
+    setOpenMenu(null);
     await exportExamToDocx(examHeader, questions, {
       pyramid3D,
       functionGraph,
@@ -414,15 +438,15 @@ export const ExamEditorPane: React.FC = () => {
                     : 'hover:ring-1 hover:ring-blue-400'
                 }`}
               >
-                {/* Floating Image Alignment + Size Slider Toolbar */}
+                {/* Floating Image Alignment + Size Slider Toolbar (Responsive, wraps cleanly if narrow) */}
                 {isFigSelected && (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 bg-white border border-slate-300 shadow-xl rounded-lg px-2.5 py-1 text-xs font-sans text-slate-700 whitespace-nowrap print:hidden"
+                    className="absolute -top-11 left-1/2 -translate-x-1/2 z-40 flex flex-wrap items-center justify-center gap-1 bg-white border border-slate-300 shadow-xl rounded-xl px-2 py-1 text-xs font-sans text-slate-700 w-max max-w-[92vw] sm:max-w-[440px] print:hidden"
                   >
                     <button
                       onClick={() => updateQuestionFigureProp(q.id, { align: 'left' })}
-                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 whitespace-nowrap ${
                         q.linkedFigure.align === 'left'
                           ? 'bg-blue-50 text-blue-600 font-semibold border border-blue-200'
                           : 'hover:bg-slate-100'
@@ -432,7 +456,7 @@ export const ExamEditorPane: React.FC = () => {
                     </button>
                     <button
                       onClick={() => updateQuestionFigureProp(q.id, { align: 'center' })}
-                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 whitespace-nowrap ${
                         q.linkedFigure.align === 'center'
                           ? 'bg-blue-50 text-blue-600 font-semibold border border-blue-200'
                           : 'hover:bg-slate-100'
@@ -442,7 +466,7 @@ export const ExamEditorPane: React.FC = () => {
                     </button>
                     <button
                       onClick={() => updateQuestionFigureProp(q.id, { align: 'right' })}
-                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
+                      className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 whitespace-nowrap ${
                         q.linkedFigure.align === 'right'
                           ? 'bg-blue-50 text-blue-600 font-semibold border border-blue-200'
                           : 'hover:bg-slate-100'
@@ -475,7 +499,7 @@ export const ExamEditorPane: React.FC = () => {
                           width: parseInt(e.target.value, 10),
                         })
                       }
-                      className="w-20 accent-blue-600 cursor-pointer"
+                      className="w-16 accent-blue-600 cursor-pointer"
                       title={`Cỡ hình: ${q.linkedFigure.width}px`}
                     />
                     <button
@@ -497,9 +521,9 @@ export const ExamEditorPane: React.FC = () => {
 
                     <button
                       onClick={() => removeQuestionFigure(q.id)}
-                      className="px-1.5 py-0.5 rounded text-red-600 hover:bg-red-50 flex items-center gap-0.5 font-medium"
+                      className="px-1.5 py-0.5 rounded text-red-600 hover:bg-red-50 flex items-center gap-0.5 font-medium whitespace-nowrap"
                     >
-                      <Trash2 className="w-3 h-3" /> Xóa hình
+                      <Trash2 className="w-3 h-3" /> Xóa
                     </button>
                   </div>
                 )}
@@ -713,62 +737,148 @@ export const ExamEditorPane: React.FC = () => {
 
   return (
     <div className="relative h-full w-full bg-slate-200/85 flex flex-col overflow-hidden">
-      {/* Clean Responsive Document Sub-Toolbar (Never overlaps the A4 paper!) */}
-      <div className="min-h-[40px] px-3 py-1 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs z-30 print:hidden">
+      {/* Clean Collapsible Document Sub-Toolbar (Never wraps into ugly stacks, never overlaps the A4 paper!) */}
+      <div
+        ref={subToolbarRef}
+        className="min-h-[40px] px-3 py-1 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs z-30 print:hidden"
+      >
         <div className="flex flex-wrap items-center gap-1.5">
+          {/* Quick Add Question Buttons */}
           <button
-            onClick={resetToBlankExam}
-            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
-            title="Tạo đề thi trống mới tinh"
+            onClick={() => addQuestion('multiple-choice')}
+            className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
+            title="Thêm nhanh 1 câu trắc nghiệm mới"
           >
-            <FilePlus2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <span>Đề mới</span>
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>+ Trắc nghiệm</span>
           </button>
 
           <button
-            onClick={loadSampleDemoExam}
-            className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition"
-            title="Nạp bộ câu hỏi mẫu có sẵn hình chóp 3D và đồ thị để thử nghiệm"
+            onClick={() => addQuestion('essay')}
+            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition"
+            title="Thêm nhanh 1 câu tự luận mới"
           >
-            <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>Nạp đề mẫu</span>
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>+ Tự luận</span>
           </button>
 
-          <button
-            onClick={shuffleExamQuestionsAndOptions}
-            className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
-            title="Trộn ngẫu nhiên câu hỏi và đảo đáp án A, B, C, D"
-          >
-            <Shuffle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Trộn mã đề</span>
-          </button>
+          {/* Collapsible Exam Actions Menu ("Tác vụ Đề thi ▾") */}
+          <div className="relative">
+            <button
+              onClick={() =>
+                setOpenMenu((prev) =>
+                  prev === 'exam-tools' ? null : 'exam-tools'
+                )
+              }
+              className={`px-2.5 py-1 rounded-lg border font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+                openMenu === 'exam-tools'
+                  ? 'bg-amber-50 text-amber-800 border-amber-300'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+              }`}
+              title="Mở menu Trộn mã đề, Tạo đề mới, Nạp đề mẫu & Mở thư mục PDF"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>Tác vụ Đề thi</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            </button>
 
-          <button
-            onClick={() => setWorkspaceMode('teaching')}
-            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
-            title="Chuyển sang chế độ Mở File PDF / Thư Mục Đề để chữa bằng bút XP-Pen"
-          >
-            <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-            <span>Mở PDF / Thư mục chữa đề</span>
-          </button>
+            {openMenu === 'exam-tools' && (
+              <div className="absolute left-0 top-full mt-1.5 w-64 rounded-2xl bg-white shadow-2xl border border-slate-200 p-1.5 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Quản lý & Tự động hoá Đề thi
+                </div>
+
+                <button
+                  onClick={() => {
+                    shuffleExamQuestionsAndOptions();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-2.5 py-2 rounded-xl hover:bg-amber-50 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
+                >
+                  <Shuffle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div>
+                    <div className="font-semibold">Trộn mã đề ngẫu nhiên</div>
+                    <div className="text-[10px] text-slate-500">
+                      Đảo thứ tự câu hỏi & phương án A, B, C, D
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    loadSampleDemoExam();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-2.5 py-2 rounded-xl hover:bg-blue-50 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
+                >
+                  <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div>
+                    <div className="font-semibold">Nạp bộ đề mẫu (Hình 3D & Đồ thị)</div>
+                    <div className="text-[10px] text-slate-500">
+                      Thử nghiệm nhanh đề Toán chuẩn SGK
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    resetToBlankExam();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-2.5 py-2 rounded-xl hover:bg-slate-100 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
+                >
+                  <FilePlus2 className="w-4 h-4 text-slate-600 shrink-0" />
+                  <div>
+                    <div className="font-semibold">Làm mới trang Đề trắng</div>
+                    <div className="text-[10px] text-slate-500">
+                      Xoá các câu hiện tại để soạn đề mới từ đầu
+                    </div>
+                  </div>
+                </button>
+
+                <div className="border-t border-slate-100 my-1" />
+
+                <button
+                  onClick={() => {
+                    setWorkspaceMode('teaching');
+                    setOpenMenu(null);
+                  }}
+                  className="w-full px-2.5 py-2 rounded-xl bg-emerald-50/70 hover:bg-emerald-100/80 text-left text-xs flex items-center gap-2.5 text-emerald-900 transition"
+                >
+                  <FolderOpen className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div>
+                    <div className="font-semibold">Mở File PDF / Thư mục chữa đề</div>
+                    <div className="text-[10px] text-emerald-700">
+                      Mở đề PDF có sẵn để viết bút XP-Pen lên
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right: Export Dropdown */}
         <div className="relative shrink-0">
           <button
-            onClick={() => setShowDownloadMenu((v) => !v)}
+            onClick={() =>
+              setOpenMenu((prev) => (prev === 'download' ? null : 'download'))
+            }
             className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5 whitespace-nowrap transition"
           >
             <FileDown className="w-3.5 h-3.5 shrink-0" />
-            <span>Tải về (Word / PDF)</span>
+            <span>Xuất đề (Word / PDF)</span>
             <ChevronDown className="w-3.5 h-3.5 shrink-0" />
           </button>
 
-          {showDownloadMenu && (
-            <div className="absolute right-0 mt-1 w-56 rounded-xl bg-white shadow-xl border border-slate-200 p-1.5 space-y-1 z-50">
+          {openMenu === 'download' && (
+            <div className="absolute right-0 top-full mt-1.5 w-60 rounded-2xl bg-white shadow-2xl border border-slate-200 p-1.5 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Tải về máy & In ấn
+              </div>
               <button
                 onClick={handleExportWord}
-                className="w-full px-2.5 py-2 rounded-lg hover:bg-blue-50 text-left text-xs flex items-center gap-2 text-slate-800"
+                className="w-full px-2.5 py-2 rounded-xl hover:bg-blue-50 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
               >
                 <FileText className="w-4 h-4 text-blue-600 shrink-0" />
                 <div>
@@ -780,25 +890,25 @@ export const ExamEditorPane: React.FC = () => {
               </button>
               <button
                 onClick={handlePrintStudentPdf}
-                className="w-full px-2.5 py-2 rounded-lg hover:bg-emerald-50 text-left text-xs flex items-center gap-2 text-slate-800"
+                className="w-full px-2.5 py-2 rounded-xl hover:bg-emerald-50 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
               >
                 <Printer className="w-4 h-4 text-emerald-600 shrink-0" />
                 <div>
                   <div className="font-semibold">PDF (đề phát học sinh)</div>
                   <div className="text-[10px] text-slate-500">
-                    Tự động bỏ đáp án & lời giải
+                    Tự động ẩn đáp án đúng & lời giải
                   </div>
                 </div>
               </button>
               <button
                 onClick={handlePrintTeacherLecturePdf}
-                className="w-full px-2.5 py-2 rounded-lg hover:bg-amber-50 text-left text-xs flex items-center gap-2 text-slate-800"
+                className="w-full px-2.5 py-2 rounded-xl hover:bg-amber-50 text-left text-xs flex items-center gap-2.5 text-slate-800 transition"
               >
                 <PenTool className="w-4 h-4 text-amber-600 shrink-0" />
                 <div>
                   <div className="font-semibold">PDF (kèm lời giải XP-Pen)</div>
                   <div className="text-[10px] text-slate-500">
-                    Lưu bài giảng gửi cho lớp
+                    Lưu bài giảng viết tay gửi cho lớp
                   </div>
                 </div>
               </button>

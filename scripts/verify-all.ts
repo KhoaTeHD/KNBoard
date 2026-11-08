@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   generatePyramid3DSvg,
   generateFunctionGraphSvg,
@@ -176,4 +178,47 @@ console.log('=== BẮT ĐẦU KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN (KNBOARD TE
   console.log('✅ [PASS] Test 6: Hệ thống Auto-Updater so sánh phiên bản SemVer & GitHub Releases');
 }
 
-console.log('\n🎉 TẤT CẢ 6 BỘ KIỂM THỬ CỐT LÕI ĐỀU VƯỢT QUA 100% (0 LỖI)!');
+// 7. Test Responsive UI & Collapsible Toolbar Integrity across all Layout Components
+{
+  const topHeaderSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/layout/TopHeaderBar.tsx'),
+    'utf8'
+  );
+  assert.ok(
+    topHeaderSrc.includes('flex-wrap'),
+    'TopHeaderBar <header> must use flex-wrap so it never overflows horizontally'
+  );
+  assert.ok(
+    !topHeaderSrc.includes('overflow-hidden'),
+    'TopHeaderBar must never use overflow-hidden which clips buttons or popovers'
+  );
+  assert.ok(
+    topHeaderSrc.includes("openMenu === 'pen'") &&
+      topHeaderSrc.includes("openMenu === 'theme'"),
+    'TopHeaderBar must use collapsible popovers for Pen Studio and Theme Switcher'
+  );
+
+  const examEditorSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/exam-editor/ExamEditorPane.tsx'),
+    'utf8'
+  );
+  assert.ok(
+    examEditorSrc.includes("openMenu === 'exam-tools'") &&
+      examEditorSrc.includes("openMenu === 'download'"),
+    'ExamEditorPane must use collapsible popovers for Exam Tools and Export Menu'
+  );
+
+  const mathBoardSrc = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/math-board/MathBoardPane.tsx'),
+    'utf8'
+  );
+  assert.ok(
+    mathBoardSrc.includes("openMenu === 'board-studio'") &&
+      mathBoardSrc.includes("openMenu === 'send-target'"),
+    'MathBoardPane must use collapsible popovers for Board Studio and Send Target'
+  );
+
+  console.log('✅ [PASS] Test 7: Giao diện Responsive tự động rớt dòng (flex-wrap) & Menu rút gọn thông minh (Collapsible Popovers)');
+}
+
+console.log('\n🎉 TẤT CẢ 7 BỘ KIỂM THỬ CỐT LÕI & GIAO DIỆN ĐỀU VƯỢT QUA 100% (0 LỖI)!');

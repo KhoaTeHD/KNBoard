@@ -269,11 +269,11 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
             className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold flex items-center gap-1 whitespace-nowrap shrink-0 transition"
           >
             <Plus className="w-3.5 h-3.5 shrink-0" />
-            <span>+ Thêm Trang Giấy Nháp</span>
+            <span>+ Trang Nháp</span>
           </button>
 
           {activeFileName && (
-            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium truncate max-w-[240px]">
+            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium truncate max-w-[180px] sm:max-w-[240px]">
               📄 {activeFileName}
             </span>
           )}
@@ -289,7 +289,7 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
             >
               <ZoomOut className="w-3.5 h-3.5 text-slate-700" />
             </button>
-            <span className="font-mono text-[11px] font-semibold text-slate-700 w-11 text-center">
+            <span className="font-mono text-[11px] font-semibold text-slate-700 w-10 text-center">
               {Math.round(zoomScale * 100)}%
             </span>
             <button
@@ -312,7 +312,7 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
             title="Mở Bảng Vẽ Hình 3D / Đồ thị nằm cạnh trang PDF để vừa chữa đề PDF vừa dựng hình"
           >
             <Columns className="w-3.5 h-3.5 shrink-0" />
-            <span>{showBoardBesidePdf ? 'Ẩn Bảng Vẽ 3D' : 'Mở Bảng Vẽ 3D Cạnh PDF'}</span>
+            <span>{showBoardBesidePdf ? 'Ẩn Bảng Vẽ 3D' : 'Bảng Vẽ 3D Cạnh PDF'}</span>
           </button>
 
           <button
@@ -321,7 +321,7 @@ export const PdfTeachingReader: React.FC<PdfTeachingReaderProps> = ({
             title="Xuất/In toàn bộ trang PDF kèm chữ viết tay XP-Pen"
           >
             <Printer className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
-            <span>Lưu PDF Bài Giảng</span>
+            <span>In / Lưu PDF</span>
           </button>
         </div>
       </div>

@@ -90,8 +90,14 @@ export const MathInputModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 backdrop-blur-[1px]">
-      <div className="w-[440px] rounded-xl bg-white shadow-2xl border border-slate-200 p-4 animate-in fade-in zoom-in-95 duration-150">
+    <div
+      onClick={() => setOpen(false)}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/35 backdrop-blur-[1px]"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-[440px] max-w-[94vw] rounded-xl bg-white shadow-2xl border border-slate-200 p-4 animate-in fade-in zoom-in-95 duration-150"
+      >
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-slate-600">
             Soạn công thức (Enter = chèn vào câu đang chọn)

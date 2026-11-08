@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   MousePointer,
   PenTool,
@@ -12,10 +12,10 @@ import {
   Sun,
   Moon,
   BookOpen,
-  Wand2,
   Trash2,
   DownloadCloud,
-  SlidersHorizontal,
+  ChevronDown,
+  Palette,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { BoardTheme, PenToolType, WorkspaceMode } from '../../types/exam';
@@ -31,7 +31,36 @@ const PEN_COLORS = [
   { label: 'Xanh bút bi', hex: '#2563eb' },
   { label: 'Đen', hex: '#0f172a' },
   { label: 'Xanh lá', hex: '#16a34a' },
+  { label: 'Cam nổi bật', hex: '#ea580c' },
+  { label: 'Tím', hex: '#7c3aed' },
   { label: 'Vàng phấn (Bảng đen)', hex: '#facc15' },
+  { label: 'Trắng phấn (Bảng đen)', hex: '#ffffff' },
+];
+
+const THEME_OPTIONS: {
+  id: BoardTheme;
+  label: string;
+  desc: string;
+  icon: React.ElementType;
+}[] = [
+  {
+    id: 'white',
+    label: 'Giấy Trắng',
+    desc: 'Chuẩn in ấn & soạn đề',
+    icon: Sun,
+  },
+  {
+    id: 'warm-paper',
+    label: 'Giấy Dịu Mắt',
+    desc: 'Chống mỏi mắt khi dạy lâu',
+    icon: BookOpen,
+  },
+  {
+    id: 'chalkboard',
+    label: 'Bảng Đen Phấn',
+    desc: 'Tương phản cao cho máy chiếu',
+    icon: Moon,
+  },
 ];
 
 export const TopHeaderBar: React.FC = () => {
@@ -56,7 +85,33 @@ export const TopHeaderBar: React.FC = () => {
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<ReleaseUpdateInfo | null>(null);
-  const [showPenSettingsPopover, setShowPenSettingsPopover] = useState(false);
+
+  // Collapsible Professional Popovers (Only 1 open at a time, auto-closes on outside click / Escape)
+  const [openMenu, setOpenMenu] = useState<'pen' | 'theme' | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const handlePointerDownOutside = (e: PointerEvent) => {
+      if (
+        openMenu &&
+        headerRef.current &&
+        !headerRef.current.contains(e.target as Node)
+      ) {
+        setOpenMenu(null);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenMenu(null);
+      }
+    };
+    window.addEventListener('pointerdown', handlePointerDownOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDownOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openMenu]);
 
   useEffect(() => {
     let mounted = true;
@@ -84,15 +139,22 @@ export const TopHeaderBar: React.FC = () => {
     };
   }, []);
 
+  const currentThemeMeta =
+    THEME_OPTIONS.find((t) => t.id === boardTheme) || THEME_OPTIONS[0];
+  const CurrentThemeIcon = currentThemeMeta.icon;
+
   return (
-    <header className="min-h-[44px] py-1.5 px-2.5 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 select-none z-40 print:hidden">
-      {/* Left: Brand + Workspace Mode Switcher */}
-      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+    <header
+      ref={headerRef}
+      className="min-h-[46px] py-1 px-2.5 bg-white border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 select-none z-40 print:hidden shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+    >
+      {/* 1. LEFT: Brand + Version Badge + 4 Workspace Mode Tabs */}
+      <div className="flex flex-wrap items-center gap-2 min-w-0">
         <div className="flex items-center gap-1.5 pr-2 border-r border-slate-200 shrink-0">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
             ∑
           </div>
-          <span className="text-xs font-bold text-slate-900">
+          <span className="text-xs font-extrabold tracking-tight text-slate-900">
             KNBoard
           </span>
           <button
@@ -113,8 +175,8 @@ export const TopHeaderBar: React.FC = () => {
           </button>
         </div>
 
-        {/* 4 Workspace Modes — Always visible, wraps cleanly if ultra-narrow */}
-        <div className="flex flex-wrap items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-xs">
+        {/* 4 Workspace Modes — Segmented Pill Switcher */}
+        <div className="flex flex-wrap items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 text-xs">
           {(
             [
               { id: 'split', label: 'Chia đôi', icon: Columns },
@@ -129,10 +191,10 @@ export const TopHeaderBar: React.FC = () => {
               <button
                 key={m.id}
                 onClick={() => setWorkspaceMode(m.id)}
-                className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+                className={`px-2.5 py-1 rounded-lg font-medium flex items-center gap-1.5 whitespace-nowrap shrink-0 transition ${
                   active
-                    ? 'bg-white text-blue-600 shadow-sm font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-blue-600 shadow-sm font-semibold ring-1 ring-slate-200/70'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -143,9 +205,10 @@ export const TopHeaderBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right & Center Combined: XP-Pen Toolset + Math Formula ("∫ Công thức") + Eye-Care Theme */}
+      {/* 2. RIGHT & CENTER: Ultra-Clean Collapsible XP-Pen Dock + Math Formula + Theme Popover */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="relative flex flex-wrap items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-xl border border-slate-200/90">
+        {/* Streamlined XP-Pen Tool Dock: 5 Tools + 1 Collapsible "Màu & Nét" Studio Button */}
+        <div className="relative flex flex-wrap items-center gap-0.5 bg-slate-100/85 p-0.5 rounded-xl border border-slate-200/90">
           {(
             [
               { id: 'select', label: 'Chọn', icon: MousePointer },
@@ -161,11 +224,11 @@ export const TopHeaderBar: React.FC = () => {
               <button
                 key={t.id}
                 onClick={() => setPenTool(t.id)}
-                title={t.label}
+                title={`Công cụ: ${t.label}`}
                 className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
                   active
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:bg-slate-200/70'
+                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-700 hover:bg-white/80 hover:text-slate-900'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -174,97 +237,81 @@ export const TopHeaderBar: React.FC = () => {
             );
           })}
 
-          <span className="text-slate-300 shrink-0">|</span>
+          <div className="w-px h-4 bg-slate-300/80 mx-0.5 shrink-0" />
 
-          {/* Color Swatches */}
-          <div className="flex items-center gap-1 shrink-0">
-            {PEN_COLORS.map((c) => (
-              <button
-                key={c.hex}
-                onClick={() => {
-                  setPenColor(c.hex);
-                  if (penTool === 'select' || penTool === 'eraser') {
-                    setPenTool('pen');
-                  }
-                }}
-                title={c.label}
-                className={`w-3.5 h-3.5 rounded-full border shrink-0 transition transform ${
-                  penColor === c.hex
-                    ? 'scale-125 ring-2 ring-blue-500 ring-offset-1'
-                    : 'border-slate-300 hover:scale-110'
-                }`}
-                style={{ backgroundColor: c.hex }}
-              />
-            ))}
-          </div>
-
-          {/* Inline Slider on large screens */}
-          <div className="hidden xl:flex items-center gap-1 pl-1.5 border-l border-slate-200 text-[11px] whitespace-nowrap shrink-0">
-            {penTool === 'eraser' ? (
-              <>
-                <span className="font-semibold text-red-700">
-                  Tẩy: {eraserSize}
-                </span>
-                <input
-                  type="range"
-                  min="6"
-                  max="55"
-                  step="2"
-                  value={eraserSize}
-                  onChange={(e) => setEraserSize(parseInt(e.target.value, 10))}
-                  className="w-14 accent-red-600 cursor-pointer"
-                />
-              </>
-            ) : (
-              <>
-                <span className="font-semibold text-blue-800">
-                  Nét: {penSize.toFixed(1)}
-                </span>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  step="0.4"
-                  value={penSize}
-                  onChange={(e) => {
-                    setPenSize(parseFloat(e.target.value));
-                    if (penTool === 'select') setPenTool('pen');
-                  }}
-                  className="w-14 accent-blue-600 cursor-pointer"
-                />
-              </>
-            )}
-          </div>
-
-          {/* Compact Pen/Eraser Size Popover Trigger */}
+          {/* Single Collapsible Pen & Eraser Studio Trigger (Replaces 8 cluttered items!) */}
           <button
-            onClick={() => setShowPenSettingsPopover((v) => !v)}
-            title="Chỉnh cỡ bút, cỡ tẩy & chế độ tự nắn thẳng"
-            className="px-1.5 py-1 rounded-lg bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap shrink-0"
+            onClick={() =>
+              setOpenMenu((prev) => (prev === 'pen' ? null : 'pen'))
+            }
+            title="Mở bảng chọn màu mực, chỉnh độ dày nét bút, bán kính cục tẩy & xoá mực"
+            className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap shrink-0 border transition ${
+              openMenu === 'pen'
+                ? 'bg-blue-50 text-blue-700 border-blue-300 shadow-sm'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200/90 shadow-[0_1px_1px_rgba(0,0,0,0.03)]'
+            }`}
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <span
+              className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0 shadow-inner"
+              style={{ backgroundColor: penColor }}
+            />
             <span>
-              {penTool === 'eraser' ? `Tẩy ${eraserSize}px` : `Cỡ ${penSize.toFixed(1)}`}
+              {penTool === 'eraser'
+                ? `Tẩy ${eraserSize}px`
+                : `Nét ${penSize.toFixed(1)}`}
             </span>
+            <ChevronDown
+              className={`w-3 h-3 text-slate-400 transition-transform ${
+                openMenu === 'pen' ? 'rotate-180 text-blue-600' : ''
+              }`}
+            />
           </button>
 
-          {/* Clear All Ink Button */}
-          <button
-            onClick={clearAllExamInk}
-            title="Xoá toàn bộ nét bút XP-Pen trên đề thi và bảng vẽ"
-            className="px-2 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 text-red-600 hover:bg-red-50 border border-red-200/70 whitespace-nowrap shrink-0 transition"
-          >
-            <Trash2 className="w-3.5 h-3.5 shrink-0" />
-            <span>Xoá mực</span>
-          </button>
-
-          {/* Pen & Eraser Settings Popover */}
-          {showPenSettingsPopover && (
-            <div className="absolute top-10 right-0 w-64 rounded-xl bg-white shadow-2xl border border-slate-200 p-3 space-y-3 z-50 text-xs">
+          {/* Collapsible Pen & Eraser Studio Popover */}
+          {openMenu === 'pen' && (
+            <div className="absolute top-full right-0 mt-1.5 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 p-3.5 space-y-3.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+              {/* Section 1: Color Swatches */}
               <div>
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  <span className="flex items-center gap-1">
+                    <Palette className="w-3.5 h-3.5 text-blue-600" /> Màu mực bút XP-Pen
+                  </span>
+                  <span className="text-[10px] font-normal text-slate-400">
+                    Bấm để đổi màu
+                  </span>
+                </div>
+                <div className="grid grid-cols-8 gap-1.5">
+                  {PEN_COLORS.map((c) => {
+                    const isSelected = penColor === c.hex;
+                    return (
+                      <button
+                        key={c.hex}
+                        onClick={() => {
+                          setPenColor(c.hex);
+                          if (penTool === 'select' || penTool === 'eraser') {
+                            setPenTool('pen');
+                          }
+                        }}
+                        title={c.label}
+                        className={`w-6 h-6 rounded-full border transition transform flex items-center justify-center ${
+                          isSelected
+                            ? 'scale-110 ring-2 ring-blue-600 ring-offset-1 border-white'
+                            : 'border-slate-300 hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Section 2: Pen Stroke Thickness */}
+              <div className="pt-2.5 border-t border-slate-100">
                 <div className="flex justify-between font-semibold text-slate-700 mb-1">
                   <span>Độ dày nét bút XP-Pen</span>
-                  <span className="text-blue-600">{penSize.toFixed(1)}px</span>
+                  <span className="text-blue-600 font-bold">
+                    {penSize.toFixed(1)} px
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -278,7 +325,7 @@ export const TopHeaderBar: React.FC = () => {
                   }}
                   className="w-full accent-blue-600 cursor-pointer"
                 />
-                <div className="flex gap-1 mt-1">
+                <div className="flex gap-1.5 mt-1.5">
                   {[
                     { label: 'Mảnh (1.6)', val: 1.6 },
                     { label: 'Vừa (2.8)', val: 2.8 },
@@ -286,8 +333,15 @@ export const TopHeaderBar: React.FC = () => {
                   ].map((p) => (
                     <button
                       key={p.label}
-                      onClick={() => setPenSize(p.val)}
-                      className="flex-1 py-1 rounded bg-slate-100 hover:bg-blue-50 text-[11px] font-medium"
+                      onClick={() => {
+                        setPenSize(p.val);
+                        if (penTool === 'select') setPenTool('pen');
+                      }}
+                      className={`flex-1 py-1 rounded-lg border text-[11px] font-medium transition ${
+                        Math.abs(penSize - p.val) < 0.15
+                          ? 'bg-blue-50 border-blue-300 text-blue-700 font-semibold'
+                          : 'bg-slate-50 border-slate-200/80 hover:bg-slate-100 text-slate-700'
+                      }`}
                     >
                       {p.label}
                     </button>
@@ -295,10 +349,11 @@ export const TopHeaderBar: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              {/* Section 3: Partial Eraser Radius */}
+              <div className="pt-2.5 border-t border-slate-100">
                 <div className="flex justify-between font-semibold text-slate-700 mb-1">
-                  <span>Bán kính Cục Tẩy</span>
-                  <span className="text-red-600">{eraserSize}px</span>
+                  <span>Bán kính Cục Tẩy (Xoá từng phần)</span>
+                  <span className="text-red-600 font-bold">{eraserSize} px</span>
                 </div>
                 <input
                   type="range"
@@ -312,7 +367,7 @@ export const TopHeaderBar: React.FC = () => {
                   }}
                   className="w-full accent-red-600 cursor-pointer"
                 />
-                <div className="flex gap-1 mt-1">
+                <div className="flex gap-1.5 mt-1.5">
                   {[
                     { label: 'Nhỏ (10)', val: 10 },
                     { label: 'Vừa (20)', val: 20 },
@@ -324,7 +379,11 @@ export const TopHeaderBar: React.FC = () => {
                         setEraserSize(p.val);
                         setPenTool('eraser');
                       }}
-                      className="flex-1 py-1 rounded bg-slate-100 hover:bg-red-50 text-[11px] font-medium"
+                      className={`flex-1 py-1 rounded-lg border text-[11px] font-medium transition ${
+                        eraserSize === p.val
+                          ? 'bg-red-50 border-red-300 text-red-700 font-semibold'
+                          : 'bg-slate-50 border-slate-200/80 hover:bg-slate-100 text-slate-700'
+                      }`}
                     >
                       {p.label}
                     </button>
@@ -332,55 +391,101 @@ export const TopHeaderBar: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] font-medium text-slate-700">
-                  Giữ bút 0.45s tự nắn thẳng
-                </span>
-                <input
-                  type="checkbox"
-                  checked={shapeSnapEnabled}
-                  onChange={(e) => setShapeSnapEnabled(e.target.checked)}
-                  className="rounded accent-blue-600 w-4 h-4"
-                />
+              {/* Section 4: Hold-to-Snap Straight Line + Clear All Ink */}
+              <div className="pt-2.5 border-t border-slate-100 space-y-2">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-[11px] font-medium text-slate-700">
+                    Giữ bút 0.45s tự nắn thẳng đoạn thẳng
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={shapeSnapEnabled}
+                    onChange={(e) => setShapeSnapEnabled(e.target.checked)}
+                    className="rounded accent-blue-600 w-4 h-4 cursor-pointer"
+                  />
+                </label>
+
+                <button
+                  onClick={() => {
+                    clearAllExamInk();
+                    setOpenMenu(null);
+                  }}
+                  className="w-full py-1.5 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-semibold flex items-center justify-center gap-1.5 transition"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Xoá sạch toàn bộ nét mực trên đề & bảng</span>
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Math Formula Button ("∫ Công thức") + Eye-Care Projector Theme */}
+        {/* Math Formula Modal Trigger ("∫ Công thức") + Collapsible Theme Switcher */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setMathModalOpen(true)}
-            className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
+            className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
+            title="Mở bảng gõ công thức Toán học nhanh (KaTeX)"
           >
             <Sigma className="w-3.5 h-3.5 shrink-0" />
             <span>Công thức</span>
           </button>
 
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs shrink-0">
-            {(
-              [
-                { id: 'white', label: 'Trắng', icon: Sun },
-                { id: 'warm-paper', label: 'Dịu mắt', icon: BookOpen },
-                { id: 'chalkboard', label: 'Bảng đen', icon: Moon },
-              ] as { id: BoardTheme; label: string; icon: React.ElementType }[]
-            ).map((th) => {
-              const Icon = th.icon;
-              return (
-                <button
-                  key={th.id}
-                  onClick={() => setBoardTheme(th.id)}
-                  className={`p-1.5 rounded flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
-                    boardTheme === th.id
-                      ? 'bg-white text-slate-900 shadow-sm font-medium'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  title={`Chế độ màu nền: ${th.label}`}
-                >
-                  <Icon className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              );
-            })}
+          {/* Single Collapsible Eye-Care Theme Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() =>
+                setOpenMenu((prev) => (prev === 'theme' ? null : 'theme'))
+              }
+              title="Đổi màu nền giấy & bảng chống mỏi mắt (Trắng / Dịu mắt / Bảng đen)"
+              className={`px-2 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1 whitespace-nowrap shrink-0 transition ${
+                openMenu === 'theme'
+                  ? 'bg-blue-50 text-blue-700 border-blue-300'
+                  : 'bg-slate-100/90 hover:bg-slate-200/70 text-slate-700 border-slate-200'
+              }`}
+            >
+              <CurrentThemeIcon className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+              <span className="hidden sm:inline">{currentThemeMeta.label}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
+            </button>
+
+            {openMenu === 'theme' && (
+              <div className="absolute top-full right-0 mt-1.5 w-56 rounded-2xl bg-white shadow-2xl border border-slate-200 p-1.5 space-y-1 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Màu nền Giấy & Bảng Vẽ
+                </div>
+                {THEME_OPTIONS.map((th) => {
+                  const Icon = th.icon;
+                  const active = boardTheme === th.id;
+                  return (
+                    <button
+                      key={th.id}
+                      onClick={() => {
+                        setBoardTheme(th.id);
+                        setOpenMenu(null);
+                      }}
+                      className={`w-full px-2.5 py-2 rounded-xl text-left flex items-center gap-2.5 transition ${
+                        active
+                          ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/80'
+                          : 'hover:bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 shrink-0 ${
+                          active ? 'text-blue-600' : 'text-slate-500'
+                        }`}
+                      />
+                      <div>
+                        <div className="leading-tight">{th.label}</div>
+                        <div className="text-[10px] text-slate-400 font-normal">
+                          {th.desc}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

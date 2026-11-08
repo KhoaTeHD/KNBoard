@@ -1,6 +1,6 @@
 [package]
 name = "knboard"
-version = "1.0.4"
+version = "1.0.5"
 description = "KNBoard - Smart Math Exam Editor, 2D/3D Geometry Whiteboard & XP-Pen Live Teaching Desktop App"
 authors = ["TeHD"]
 edition = "2021"
