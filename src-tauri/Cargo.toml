@@ -2,7 +2,7 @@
 name = "knboard"
 version = "1.0.0"
 description = "KNBoard - Smart Math Exam Editor, 2D/3D Geometry Whiteboard & XP-Pen Live Teaching Desktop App"
-authors = ["KNBoard Team"]
+authors = ["TeHD"]
 edition = "2021"
 
 [build-dependencies]
@@ -10,5 +10,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

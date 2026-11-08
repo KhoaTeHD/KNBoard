@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   MousePointer,
   PenTool,
@@ -14,9 +14,16 @@ import {
   BookOpen,
   Wand2,
   Trash2,
+  DownloadCloud,
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { BoardTheme, PenToolType, WorkspaceMode } from '../../types/exam';
+import {
+  CURRENT_APP_VERSION,
+  ReleaseUpdateInfo,
+  checkAppUpdate,
+} from '../../core/autoUpdater';
+import { UpdateModal } from '../updater/UpdateModal';
 
 const PEN_COLORS = [
   { label: 'Đỏ chấm bài', hex: '#dc2626' },
@@ -46,6 +53,28 @@ export const TopHeaderBar: React.FC = () => {
   const boardTheme = useAppStore((s) => s.boardTheme);
   const setBoardTheme = useAppStore((s) => s.setBoardTheme);
 
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<ReleaseUpdateInfo | null>(null);
+
+  // Silent background check on startup — automatically pops up modal if a newer GitHub Release exists!
+  useEffect(() => {
+    let mounted = true;
+    checkAppUpdate()
+      .then((info) => {
+        if (!mounted) return;
+        setUpdateInfo(info);
+        if (info.hasUpdate) {
+          setIsUpdateModalOpen(true);
+        }
+      })
+      .catch(() => {
+        // Ignore network offline errors during silent startup check
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <header className="h-12 px-3 bg-white border-b border-slate-200 flex items-center justify-between gap-2 select-none z-40 print:hidden">
       {/* Left: Brand + Workspace Mode Switcher */}
@@ -55,8 +84,26 @@ export const TopHeaderBar: React.FC = () => {
             ∑
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-900 leading-none">
-              KNBoard
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-900 leading-none">
+                KNBoard
+              </span>
+              <button
+                onClick={() => setIsUpdateModalOpen(true)}
+                title="Bấm để kiểm tra cập nhật phiên bản mới từ GitHub Releases"
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 transition ${
+                  updateInfo?.hasUpdate
+                    ? 'bg-amber-500 text-white animate-pulse shadow-sm'
+                    : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 border border-slate-200'
+                }`}
+              >
+                <DownloadCloud className="w-2.5 h-2.5" />
+                <span>
+                  {updateInfo?.hasUpdate
+                    ? `Có bản mới v${updateInfo.latestVersion}`
+                    : `v${CURRENT_APP_VERSION}`}
+                </span>
+              </button>
             </div>
             <div className="text-[10px] text-slate-500">
               Math Studio & XP-Pen
@@ -303,6 +350,14 @@ export const TopHeaderBar: React.FC = () => {
           })}
         </div>
       </div>
+
+      {/* OTA Auto-Updater Modal */}
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        initialUpdateInfo={updateInfo}
+        onUpdateInfoChanged={setUpdateInfo}
+      />
     </header>
   );
 };

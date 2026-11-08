@@ -8,6 +8,7 @@ import {
   pointToSegmentDistance,
   partialEraseStrokes,
 } from '../src/components/ink-overlay/InkCanvasOverlay';
+import { compareSemver } from '../src/core/autoUpdater';
 import { useAppStore } from '../src/store/useAppStore';
 
 console.log('=== BẮT ĐẦU KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN (KNBOARD TEST SUITE) ===\n');
@@ -159,4 +160,13 @@ console.log('=== BẮT ĐẦU KIỂM THỬ TỰ ĐỘNG TOÀN DIỆN (KNBOARD TE
   console.log('✅ [PASS] Test 5: Đồng bộ Live-Link, Viết bút XP-Pen toàn mặt trang Đề, Cục Tẩy Cắt Đoạn Thẳng & Trộn Mã Đề');
 }
 
-console.log('\n🎉 TẤT CẢ 5 BỘ KIỂM THỬ CỐT LÕI ĐỀU VƯỢT QUA 100% (0 LỖI)!');
+// 6. Test Auto-Updater Semver Comparison Logic
+{
+  assert.equal(compareSemver('1.0.1', '1.0.0'), 1);
+  assert.equal(compareSemver('v1.2.0', '1.1.9'), 1);
+  assert.equal(compareSemver('1.0.0', '1.0.0'), 0);
+  assert.equal(compareSemver('1.0.0', '1.0.2'), -1);
+  console.log('✅ [PASS] Test 6: Hệ thống Auto-Updater so sánh phiên bản SemVer & GitHub Releases');
+}
+
+console.log('\n🎉 TẤT CẢ 6 BỘ KIỂM THỬ CỐT LÕI ĐỀU VƯỢT QUA 100% (0 LỖI)!');

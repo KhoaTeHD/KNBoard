@@ -8,9 +8,13 @@
     "dev": "vite --port 5173",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "bump-version": "npx tsx scripts/bump-version.ts"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-process": "^2.0.0",
+    "@tauri-apps/plugin-updater": "^2.0.0",
     "docx": "^8.5.0",
     "file-saver": "^2.0.5",
     "katex": "^0.16.11",
